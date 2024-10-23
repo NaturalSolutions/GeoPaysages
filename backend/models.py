@@ -17,23 +17,36 @@ class Conf(db.Model):
 
     key = db.Column(db.String, primary_key=True)
     value = db.Column(db.String)
-    
+
+
 class Lang(db.Model):
-    __tablename__ = 'lang'
+    __tablename__ = "lang"
     __table_args__ = (
-        {'schema': 'geopaysages'},
-        db.CheckConstraint("is_default IS NOT TRUE OR (is_default IS TRUE AND id IN (SELECT id FROM geopaysages.lang WHERE is_default IS TRUE HAVING COUNT(*) = 1))", name="unique_default_lang")
+        {"schema": "geopaysages"},
     )
-    
+
     id = db.Column(db.String, primary_key=True)
     label = db.Column(db.String)
     is_published = db.Column(db.Boolean)
     is_default = db.Column(db.Boolean, default=False)
-    observatory_translations = db.relationship('ObservatoryTranslation', back_populates='lang')
-    site_translations = db.relationship('TSiteTranslation', back_populates='lang')
-    dico_stheme_translations = db.relationship('DicoSthemeTranslation', back_populates='lang')
-    dico_theme_translations = db.relationship('DicoThemeTranslation', back_populates='lang')
-    communes_translations = db.relationship('CommunesTranslation', back_populates='lang')
+    __table_args__ = (
+        db.UniqueConstraint('is_default', name='uq_default_lang'),
+        {"schema": "geopaysages"},
+    )
+    observatory_translations = db.relationship(
+        "ObservatoryTranslation", back_populates="lang"
+    )
+    site_translations = db.relationship("TSiteTranslation", back_populates="lang")
+    dico_stheme_translations = db.relationship(
+        "DicoSthemeTranslation", back_populates="lang"
+    )
+    dico_theme_translations = db.relationship(
+        "DicoThemeTranslation", back_populates="lang"
+    )
+    communes_translations = db.relationship(
+        "CommunesTranslation", back_populates="lang"
+    )
+
 
 
 class ComparatorEnum(Enum):
@@ -45,32 +58,35 @@ class Observatory(db.Model):
     __tablename__ = "t_observatory"
     __table_args__ = {"schema": "geopaysages"}
 
-    id = db.Column(db.Integer, primary_key=True,
-                   server_default=db.FetchedValue())
+    id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     ref = db.Column(db.String)
     color = db.Column(db.String)
     thumbnail = db.Column(db.String)
     logo = db.Column(db.String)
     comparator = db.Column(db.Enum(ComparatorEnum, name="comparator_enum"))
-    geom = db.Column(Geometry(geometry_type='MULTIPOLYGON', srid=4326))
-    translations = db.relationship('ObservatoryTranslation', back_populates='row', lazy=True)
+    geom = db.Column(Geometry(geometry_type="MULTIPOLYGON", srid=4326))
+    translations = db.relationship(
+        "ObservatoryTranslation", back_populates="row", lazy=True
+    )
+
 
 class ObservatoryTranslation(db.Model):
-    __tablename__ = 't_observatory_translation'
-    __table_args__ = {'schema': 'geopaysages'}
-    
-    id = db.Column(db.Integer, primary_key=True,
-                   server_default=db.FetchedValue())
+    __tablename__ = "t_observatory_translation"
+    __table_args__ = {"schema": "geopaysages"}
+
+    id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     title = db.Column(db.String)
     is_published = db.Column(db.Boolean)
-    row_id = db.Column(db.ForeignKey(
-        'geopaysages.t_observatory.id', name='observatory_id'))
-    row = db.relationship('Observatory', back_populates='translations')
-    lang_id = db.Column(db.ForeignKey(
-        'geopaysages.lang.id', name='t_observatory_translation_fk_lang'))
-    lang = db.relationship('Lang', primaryjoin='ObservatoryTranslation.lang_id == Lang.id')
-
-
+    row_id = db.Column(
+        db.ForeignKey("geopaysages.t_observatory.id", name="observatory_id")
+    )
+    row = db.relationship("Observatory", back_populates="translations")
+    lang_id = db.Column(
+        db.ForeignKey("geopaysages.lang.id", name="t_observatory_translation_fk_lang")
+    )
+    lang = db.relationship(
+        "Lang", primaryjoin="ObservatoryTranslation.lang_id == Lang.id"
+    )
 
 class TSite(db.Model):
     __tablename__ = "t_site"
@@ -81,34 +97,42 @@ class TSite(db.Model):
         db.ForeignKey("geopaysages.t_observatory.id", name="t_site_fk_observatory")
     )
     observatory = db.relationship(
-        'Observatory', primaryjoin='TSite.id_observatory == Observatory.id')
+        "Observatory", primaryjoin="TSite.id_observatory == Observatory.id"
+    )
     ref_site = db.Column(db.String)
-    testim_site = db.Column(db.String)
     code_city_site = db.Column(db.String)
     alti_site = db.Column(db.Integer)
     path_file_guide_site = db.Column(db.String)
-    geom = db.Column(Geometry(geometry_type='POINT', srid=4326))
+    geom = db.Column(Geometry(geometry_type="POINT", srid=4326))
     main_photo = db.Column(db.Integer)
     main_theme_id = db.Column(db.ForeignKey("geopaysages.dico_theme.id_theme"))
     main_theme = db.relationship(
-        'DicoTheme', primaryjoin='TSite.main_theme_id == DicoTheme.id_theme')
-    __tablename__ = 't_site_translation'
-    __table_args__ = {'schema': 'geopaysages'}
+        "DicoTheme", primaryjoin="TSite.main_theme_id == DicoTheme.id_theme"
+    )
+    translations = db.relationship("TSiteTranslation", back_populates="row", lazy=True)
 
-    id = db.Column(db.Integer, primary_key=True,
-                   server_default=db.FetchedValue())
+
+class TSiteTranslation(db.Model):
+    __tablename__ = "t_site_translation"
+    __table_args__ = {"schema": "geopaysages"}
+
+    id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     name_site = db.Column(db.String)
     desc_site = db.Column(db.String)
+    testim_site = db.Column(db.String)
     legend_site = db.Column(db.String)
     publish_site = db.Column(db.Boolean)
-    row_id = db.Column(db.ForeignKey('geopaysages.t_site.id_site', name='site_id_site'))
-    row = db.relationship('TSite', back_populates='translations')
-    lang_id = db.Column(db.ForeignKey('geopaysages.lang.id', name='t_site_translation_fk_lang'))
-    lang = db.relationship('Lang', back_populates='site_translations')
+    row_id = db.Column(db.ForeignKey("geopaysages.t_site.id_site", name="site_id_site"))
+    row = db.relationship("TSite", back_populates="translations")
+    lang_id = db.Column(
+        db.ForeignKey("geopaysages.lang.id", name="t_site_translation_fk_lang")
+    )
+    lang = db.relationship("Lang", back_populates="site_translations")
 
 
 class CorSiteSthemeTheme(db.Model):
     __tablename__ = "cor_site_stheme_theme"
+    __table_args__ = {"schema": "geopaysages"}
 
     id_site_stheme_theme = db.Column(
         db.Integer, nullable=False, server_default=db.FetchedValue()
@@ -179,44 +203,55 @@ class DicoStheme(db.Model):
     __tablename__ = "dico_stheme"
     __table_args__ = {"schema": "geopaysages"}
 
-    id_stheme = db.Column(db.Integer, primary_key=True,
-                          server_default=db.FetchedValue())
-    translations = db.relationship('DicoSthemeTranslation', back_populates='row', lazy=True)
+    id_stheme = db.Column(
+        db.Integer, primary_key=True, server_default=db.FetchedValue()
+    )
+    translations = db.relationship(
+        "DicoSthemeTranslation", back_populates="row", lazy=True
+    )
+
 
 class DicoSthemeTranslation(db.Model):
-    __tablename__ = 'dico_stheme_translation'
-    __table_args__ = {'schema': 'geopaysages'}
+    __tablename__ = "dico_stheme_translation"
+    __table_args__ = {"schema": "geopaysages"}
 
-    id = db.Column(db.Integer, primary_key=True,
-                   server_default=db.FetchedValue())
+    id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     name_stheme = db.Column(db.String)
-    row_id = db.Column(db.ForeignKey('geopaysages.dico_stheme.id_stheme', name='stheme_id_stheme'))
-    row = db.relationship('DicoStheme', back_populates='translations')
-    lang_id = db.Column(db.ForeignKey('geopaysages.lang.id', name='dico_stheme_translation_fk_lang'))
-    lang = db.relationship('Lang', back_populates='dico_stheme_translations')
-    
-    
+    row_id = db.Column(
+        db.ForeignKey("geopaysages.dico_stheme.id_stheme", name="stheme_id_stheme")
+    )
+    row = db.relationship("DicoStheme", back_populates="translations")
+    lang_id = db.Column(
+        db.ForeignKey("geopaysages.lang.id", name="dico_stheme_translation_fk_lang")
+    )
+    lang = db.relationship("Lang", back_populates="dico_stheme_translations")
+
+
 class DicoTheme(db.Model):
     __tablename__ = "dico_theme"
     __table_args__ = {"schema": "geopaysages"}
 
-    id_theme = db.Column(db.Integer, primary_key=True,
-                         server_default=db.FetchedValue())
+    id_theme = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     icon = db.Column(db.String)
-    translations = db.relationship('DicoThemeTranslation', back_populates='row', lazy=True)
+    translations = db.relationship(
+        "DicoThemeTranslation", back_populates="row", lazy=True
+    )
 
 
 class DicoThemeTranslation(db.Model):
-    __tablename__ = 'dico_theme_translation'
-    __table_args__ = {'schema': 'geopaysages'}
+    __tablename__ = "dico_theme_translation"
+    __table_args__ = {"schema": "geopaysages"}
 
-    id = db.Column(db.Integer, primary_key=True,
-                   server_default=db.FetchedValue())
+    id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     name_theme = db.Column(db.String)
-    row_id = db.Column(db.ForeignKey('geopaysages.dico_theme.id_theme', name='theme_id_theme'))
-    row = db.relationship('DicoTheme', back_populates='translations')
-    lang_id = db.Column(db.ForeignKey('geopaysages.lang.id', name='dico_theme_translation_fk_lang'))
-    lang = db.relationship('Lang', back_populates='dico_theme_translations')
+    row_id = db.Column(
+        db.ForeignKey("geopaysages.dico_theme.id_theme", name="theme_id_theme")
+    )
+    row = db.relationship("DicoTheme", back_populates="translations")
+    lang_id = db.Column(
+        db.ForeignKey("geopaysages.lang.id", name="dico_theme_translation_fk_lang")
+    )
+    lang = db.relationship("Lang", back_populates="dico_theme_translations")
 
 
 class TRole(db.Model):
@@ -294,21 +329,28 @@ class Communes(db.Model):
     __tablename__ = "communes"
     __table_args__ = {"schema": "geopaysages"}
 
-    code_commune = db.Column(db.String, primary_key=True,
-                             server_default=db.FetchedValue())
-    translations = db.relationship('CommunesTranslation', back_populates='row', lazy=True)
+    code_commune = db.Column(
+        db.String, primary_key=True, server_default=db.FetchedValue()
+    )
+    translations = db.relationship(
+        "CommunesTranslation", back_populates="row", lazy=True
+    )
+
 
 class CommunesTranslation(db.Model):
-    __tablename__ = 'communes_translation'
-    __table_args__ = {'schema': 'geopaysages'}
+    __tablename__ = "communes_translation"
+    __table_args__ = {"schema": "geopaysages"}
 
-    id = db.Column(db.Integer, primary_key=True,
-                   server_default=db.FetchedValue())
+    id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     nom_commune = db.Column(db.String)
-    row_id = db.Column(db.ForeignKey('geopaysages.communes.code_commune', name='commune_code_commune'))
-    row = db.relationship('Communes', back_populates='translations')
-    lang_id = db.Column(db.ForeignKey('geopaysages.lang.id', name='communes_translation_fk_lang'))
-    lang = db.relationship('Lang', back_populates='communes_translations')
+    row_id = db.Column(
+        db.ForeignKey("geopaysages.communes.code_commune", name="commune_code_commune")
+    )
+    row = db.relationship("Communes", back_populates="translations")
+    lang_id = db.Column(
+        db.ForeignKey("geopaysages.lang.id", name="communes_translation_fk_lang")
+    )
+    lang = db.relationship("Lang", back_populates="communes_translations")
 
 
 class GeographySerializationField(fields.String):
@@ -342,55 +384,66 @@ class GeographySerializationField(fields.String):
 
 class TranslationSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ('lang_id', 'title', 'is_published')
+        fields = ("lang_id", "title", "is_published")
+
 
 class LangSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Lang
-        fields = ('id', 'label')
-        
+        fields = ("id", "label", "is_published", "is_default")
+
 
 class CommunesTranslationSchema(ma.SQLAlchemyAutoSchema):
     lang = ma.Nested(LangSchema)
+
     class Meta:
         model = CommunesTranslation
-        fields = ('nom_commune', 'lang_id', 'lang')
+        fields = ("nom_commune", "lang_id", "lang")
+
 
 class ObservatoryTranslationSchema(ma.SQLAlchemyAutoSchema):
-    lang = ma.Nested(LangSchema)   
+    lang = ma.Nested(LangSchema)
+
     class Meta:
         model = ObservatoryTranslation
-        fields = ('title','is_published','lang_id')
-        
+        fields = ("title", "is_published", "lang_id")
+
+
 class TSiteTranslationSchema(ma.SQLAlchemyAutoSchema):
     lang = ma.Nested(LangSchema)
+
     class Meta:
         model = TSiteTranslation
-        fields = ('name_site', 'desc_site', 'legend_site', 'publish_site', 'lang_id')
+        fields = ("name_site", "desc_site", "legend_site", "publish_site", "lang_id")
+
 
 class DicoThemeTranslationSchema(ma.SQLAlchemyAutoSchema):
     lang = ma.Nested(LangSchema)
+
     class Meta:
         model = DicoThemeTranslation
-        fields = ('name_theme', 'lang_id', 'lang')
+        fields = ("name_theme", "lang_id", "lang")
+
 
 class DicoSthemeTranslationSchema(ma.SQLAlchemyAutoSchema):
     lang = ma.Nested(LangSchema)
+
     class Meta:
         model = DicoSthemeTranslation
-        fields = ('name_stheme', 'lang_id', 'lang')
+        fields = ("name_stheme", "lang_id", "lang")
+
 
 class DicoThemeSchema(ma.SQLAlchemyAutoSchema):
     translations = ma.Nested(DicoThemeTranslationSchema, many=True)
-    
+
     class Meta:
         model = DicoTheme
-        fields = ('id_theme', 'icon', 'translations')
+        fields = ("id_theme", "icon", "translations")
 
 
 class DicoSthemeSchema(ma.SQLAlchemyAutoSchema):
     translations = ma.Nested(DicoSthemeTranslationSchema, many=True)
-    
+
     class Meta:
         model = DicoStheme
         include_relationships = True
@@ -454,9 +507,11 @@ class ObservatorySchemaFull(ObservatorySchema):
             return None
         p = to_shape(obj.geom)
         return p.wkt
+
+
 class ObservatorySchemaLite(ObservatorySchema):
     comparator = EnumField(ComparatorEnum, by_value=False)
-    
+
     @staticmethod
     def geomSerialize(obj):
         if obj.geom is None:
@@ -468,10 +523,12 @@ class ObservatorySchemaLite(ObservatorySchema):
 
 class TSiteSchema(ma.SQLAlchemyAutoSchema):
     translations = ma.Nested(TSiteTranslationSchema, many=True)
-    geom = GeographySerializationField(attribute='geom')
-    observatory = ma.Nested(ObservatorySchema, only=["id", "title", "ref", "color", "logo"])
+    geom = GeographySerializationField(attribute="geom")
+    observatory = ma.Nested(
+        ObservatorySchema, only=["id", "title", "ref", "color", "logo"]
+    )
     main_theme = ma.Nested(DicoThemeSchema, only=["id_theme", "translations", "icon"])
-    
+
     class Meta:
         model = TSite
         include_fk = True
@@ -480,7 +537,7 @@ class TSiteSchema(ma.SQLAlchemyAutoSchema):
 
 class CommunesSchema(ma.SQLAlchemyAutoSchema):
     translations = ma.Nested(CommunesTranslationSchema, many=True)
+
     class Meta:
         model = Communes
         include_relationships = True
-
