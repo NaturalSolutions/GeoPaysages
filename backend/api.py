@@ -486,7 +486,14 @@ def returnAllcommunes():
     return jsonify(communes), 200
 
 
-@api.route("/api/logout", methods=["GET"])
+@api.route('/api/languages', methods=['GET'])
+def returnAllLanguages():
+    get_all_languages = models.Lang.query.all()
+    languages = models.LangSchema(many=True).dump(get_all_languages)
+    return jsonify(languages), 200
+
+
+@api.route('/api/logout', methods=['GET'])
 def logout():
     resp = Response("", 200)
     resp.delete_cookie("token")
