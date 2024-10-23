@@ -23,10 +23,6 @@ class Lang(db.Model):
     __tablename__ = "lang"
     __table_args__ = (
         {"schema": "geopaysages"},
-        db.CheckConstraint(
-            "is_default IS NOT TRUE OR (is_default IS TRUE AND id IN (SELECT id FROM geopaysages.lang WHERE is_default IS TRUE HAVING COUNT(*) = 1))",
-            name="unique_default_lang",
-        ),
     )
 
     id = db.Column(db.String, primary_key=True)
@@ -100,7 +96,6 @@ class TSite(db.Model):
         "Observatory", primaryjoin="TSite.id_observatory == Observatory.id"
     )
     ref_site = db.Column(db.String)
-    testim_site = db.Column(db.String)
     code_city_site = db.Column(db.String)
     alti_site = db.Column(db.Integer)
     path_file_guide_site = db.Column(db.String)
@@ -120,6 +115,7 @@ class TSiteTranslation(db.Model):
     id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     name_site = db.Column(db.String)
     desc_site = db.Column(db.String)
+    testim_site = db.Column(db.String)
     legend_site = db.Column(db.String)
     publish_site = db.Column(db.Boolean)
     row_id = db.Column(db.ForeignKey("geopaysages.t_site.id_site", name="site_id_site"))
@@ -391,7 +387,7 @@ class TranslationSchema(ma.SQLAlchemyAutoSchema):
 class LangSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Lang
-        fields = ("id", "label")
+        fields = ("id", "label", "is_published", "is_default")
 
 
 class CommunesTranslationSchema(ma.SQLAlchemyAutoSchema):
