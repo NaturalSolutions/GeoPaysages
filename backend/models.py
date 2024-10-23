@@ -379,11 +379,6 @@ class GeographySerializationField(fields.String):
 # schemas#
 
 
-class TranslationSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        fields = ("lang_id", "title", "is_published")
-
-
 class LangSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Lang
