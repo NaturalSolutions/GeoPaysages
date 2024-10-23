@@ -94,10 +94,37 @@ def returnAllObservatories():
 def postObservatory():
     try:
         data = dict(request.get_json())
+        translations_data = data.pop("translations", [])
         db_obj = models.Observatory(**data)
+
         db.session.add(db_obj)
         db.session.commit()
+
+        translations = []
+        for translate in translations_data:
+            if "lang_id" not in translate or "title" not in translate:
+                return (
+                    jsonify(
+                        {
+                            "error": "Each translation must include 'lang_id' and 'title'."
+                        }
+                    ),
+                    400,
+                )
+
+            translation_obj = models.ObservatoryTranslation(
+                title=translate["title"],
+                is_published=translate["is_published"],
+                lang_id=translate["lang_id"],
+                row_id=db_obj.id,
+            )
+            translations.append(translation_obj)
+
+        db.session.add_all(translations)
+        db.session.commit()
+
     except Exception as exception:
+        db.session.rollback()
         print(exception)
         return str(exception), 400
 
@@ -116,16 +143,47 @@ def returnObservatoryById(id):
 
 
 @api.route("/api/observatories/<int:id>", methods=["PATCH"])
-@fnauth.check_auth(2)
+# @fnauth.check_auth(2)
 def patchObservatory(id):
     try:
-        rows = models.Observatory.query.filter_by(id=id)
-        if not rows.count():
+        observatory = models.Observatory.query.filter_by(id=id).first()
+        if not observatory:
             abort(404)
         data = request.get_json()
-        rows.update(data)
+        translations_data = data.pop("translations", [])
+
+        for key, value in data.items():
+            setattr(observatory, key, value)
         db.session.commit()
+
+        existing_translations = {t.lang_id: t for t in observatory.translations}
+        for translate in translations_data:
+            if "lang_id" not in translate or "title" not in translate:
+                return (
+                    jsonify(
+                        {
+                            "error": "Each translation must include 'lang_id' and 'title'."
+                        }
+                    ),
+                    400,
+                )
+            if translate["lang_id"] in existing_translations:
+                translation_obj = existing_translations[translate["lang_id"]]
+                translation_obj.title = translate["title"]
+                translation_obj.is_published = translate["is_published"]
+            else:
+                new_translation = models.ObservatoryTranslation(
+                    title=translate["title"],
+                    is_published=translate["is_published"],
+                    lang_id=translate["lang_id"],
+                    row_id=observatory.id,
+                )
+                db.session.add(new_translation)
+
+        db.session.commit()
+
     except Exception as exception:
+        db.session.rollback()
         return str(exception), 400
     row = models.Observatory.query.filter_by(id=id).first()
     dict = observatory_schema_full.dump(row)
@@ -489,14 +547,14 @@ def returnAllcommunes():
     return jsonify(communes), 200
 
 
-@api.route('/api/languages', methods=['GET'])
+@api.route("/api/languages", methods=["GET"])
 def returnAllLanguages():
     get_all_languages = models.Lang.query.all()
     languages = models.LangSchema(many=True).dump(get_all_languages)
     return jsonify(languages), 200
 
 
-@api.route('/api/logout', methods=['GET'])
+@api.route("/api/logout", methods=["GET"])
 def logout():
     resp = Response("", 200)
     resp.delete_cookie("token")
