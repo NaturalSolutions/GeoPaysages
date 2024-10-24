@@ -21,16 +21,19 @@ observatory_schema = models.ObservatorySchema(many=True)
 site_schema = models.TSiteSchema(many=True)
 themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
 
+
 def getLocale():
-    return request.view_args.get('locale', 'fr')
+    return request.view_args.get("locale", "fr")
+
 
 def isMultiLangs():
     return False
 
+
 def getCustomTpl(name):
-    tpl_local = f'custom/{name}_{getLocale()}.jinja'
-    tpl_common = f'custom/{name}.jinja'
-    if os.path.exists(f'tpl/{tpl_local}'):
+    tpl_local = f"custom/{name}_{getLocale()}.jinja"
+    tpl_common = f"custom/{name}.jinja"
+    if os.path.exists(f"tpl/{tpl_local}"):
         return tpl_local
     if os.path.exists(f"tpl/{tpl_common}"):
         return tpl_common
@@ -80,7 +83,9 @@ def getDbConf():
 def isMultiObservatories():
     locale = getLocale()
     # Pourrait passer par un count sql
-    sql = text("SELECT o.id FROM geopaysages.t_observatory o join geopaysages.t_observatory_translation ot on o.id = ot.row_id and ot.lang_id = '{locale}' where ot.is_published is true")
+    sql = text(
+        "SELECT o.id FROM geopaysages.t_observatory o join geopaysages.t_observatory_translation ot on o.id = ot.row_id and ot.lang_id = '{locale}' where ot.is_published is true"
+    )
     result = db.engine.execute(sql).fetchall()
     rows = [dict(row) for row in result]
     if len(rows) > 1:

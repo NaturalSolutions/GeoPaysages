@@ -1,5 +1,4 @@
 from flask import (
-    Flask,
     request,
     Blueprint,
     Response,
@@ -80,8 +79,7 @@ def returnDdConf():
 @api.route("/api/observatories", methods=["GET"])
 def returnAllObservatories():
     get_all = (
-        models.Observatory.query
-        .join(models.ObservatoryTranslation)
+        models.Observatory.query.join(models.ObservatoryTranslation)
         .order_by(models.ObservatoryTranslation.title)
         .all()
     )
@@ -481,19 +479,23 @@ def deletePhotos():
 
 @api.route("/api/communes", methods=["GET"])
 def returnAllcommunes():
-    get_all_communes = (models.Communes.query.join(models.CommunesTranslation).order_by(models.CommunesTranslation.nom_commune).all())
+    get_all_communes = (
+        models.Communes.query.join(models.CommunesTranslation)
+        .order_by(models.CommunesTranslation.nom_commune)
+        .all()
+    )
     communes = models.CommunesSchema(many=True).dump(get_all_communes)
     return jsonify(communes), 200
 
 
-@api.route('/api/languages', methods=['GET'])
+@api.route("/api/languages", methods=["GET"])
 def returnAllLanguages():
     get_all_languages = models.Lang.query.all()
     languages = models.LangSchema(many=True).dump(get_all_languages)
     return jsonify(languages), 200
 
 
-@api.route('/api/logout', methods=['GET'])
+@api.route("/api/logout", methods=["GET"])
 def logout():
     resp = Response("", 200)
     resp.delete_cookie("token")
