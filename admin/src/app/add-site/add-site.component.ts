@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SitesService } from '../services/sites.service';
 import { HttpEventType } from '@angular/common/http';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalRef, NgbTabChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup } from '@angular/forms';
 import { tileLayer, latLng, Map, Layer } from 'leaflet';
 import { FormService } from '../services/form.service';
@@ -19,6 +19,7 @@ import { DbConfService, IDBConf } from '../services/dbconf.service';
 import { ToolbarService, LinkService, ImageService, HtmlEditorService } from '@syncfusion/ej2-angular-richtexteditor';
 import { TranslateService } from '@ngx-translate/core';
 import { switchMap, tap } from 'rxjs/operators';
+import { fixture_city, fixture_theme, fixture_stheme,fixture_site, fixture_observatories } from '../constants/fixtures';
 
 @Component({
   selector: 'app-add-site',
@@ -96,11 +97,29 @@ export class AddSiteComponent implements OnInit, OnDestroy {
   marker: Layer[] = [];
   center: any;
   toast_msg: string;
-  communes: undefined;
+  communes: any;
   observatories: ObservatoryType[] = [];
   currentUser: any;
   zoom = 10;
   removed_notice: any = null;
+
+  currentLang: { langId: string; langLabel: string } | null = null; // Ajout d'un type pour currentLang
+  activeTab:string;
+  availableLang: any[] = [{
+    langId: 'fr',
+    langLabel: 'Français'
+  },
+  {
+    langId: 'en',
+    langLabel: 'Anglais'
+  }
+]
+defaultLang = {langId: 'fr', langLabel: 'Français'} 
+fixture_site = fixture_site;
+fixture_theme = fixture_theme;
+fixture_stheme = fixture_stheme;
+fixture_city = fixture_city;
+
   constructor(
     private sitesService: SitesService,
     private observatoriesSrv: ObservatoriesService,
@@ -116,9 +135,10 @@ export class AddSiteComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.setLanguage();
     this.currentUser = this.authService.currentUser;
     this.id_site = this.route.snapshot.params['id'];
-    this.siteForm = this.formService.initFormSite();
+    this.siteForm = this.formService.initFormSite(this.availableLang);
     this.siteForm.controls['id_stheme'].disable();
     forkJoin([
       this.sitesService.getThemes(),
@@ -126,11 +146,17 @@ export class AddSiteComponent implements OnInit, OnDestroy {
       this.sitesService.getCommunes(),
       this.observatoriesSrv.getAll(),
     ]).subscribe((results) => {
-      this.themes = results[0];
-      this.subthemes = results[1];
-      this.communes = results[2];
+      console.log('results', results);
+      this.themes = this.fixture_theme;
+      this.subthemes = this.fixture_stheme;
+      this.communes = this.fixture_city;
+      // this.themes = results[0];
+      // this.subthemes = results[1];
+      // this.communes = results[2];
       this.selectedSubthemes = this.subthemes;
-      this.observatories = results[3];
+      console.log('selectedSubthemes', this.selectedSubthemes);
+      // this.observatories = results[3];
+      this.observatories = fixture_observatories
       if (this.id_site) {
         this.getSite(this.id_site);
         this.submit_btn_text = 'BUTTONS.SUBMIT';
@@ -283,6 +309,7 @@ export class AddSiteComponent implements OnInit, OnDestroy {
   }
 
   submitSite(siteForm) {
+    console.log('siteForm', siteForm);
     this.alert = null;
     this.edit_btn = false;
     let path_file_guide_site = null;
@@ -503,7 +530,9 @@ export class AddSiteComponent implements OnInit, OnDestroy {
   getSite(id_site) {
     this.sitesService.getsiteById(id_site).subscribe(
       (site) => {
-        this.site = site.site[0];
+        console.log('site', site),
+        // this.site = site.site[0];
+        this.site = fixture_site;
         _.forEach(site.photos, (photo) => {
           this.initPhotos.push({
             id_photo: photo.id_photo,
@@ -755,21 +784,44 @@ export class AddSiteComponent implements OnInit, OnDestroy {
   }
 
   patchForm() {
+    // Récupérer la traduction correspondant à la langue actuelle
+    console.log("Dans patchForm this.currentLang.langId", this.currentLang.langId);
+    const translation = this.getTranslation(this.currentLang.langId, this.site);
+    
+    // Si la traduction existe, utilisez ses valeurs, sinon utilisez les valeurs par défaut
+    const nameSite = translation ? translation.name_site : null; // ou une valeur par défaut
+    const descSite = translation ? translation.desc_site : null; // ou une valeur par défaut
+    const legendSite = translation ? translation.legend_site : null; // ou une valeur par défaut
+    const testimSite = translation ? translation.testim_site : null; // ou une valeur par défaut
+    const publishSite = translation ? translation.publish_site : false; // ou une valeur par défaut
+    
     this.siteForm.patchValue({
-      name_site: this.site.name_site,
-      desc_site: this.site.desc_site,
+      // name_site: this.site.name_site,
+      // desc_site: this.site.desc_site,
       ref_site: this.site.ref_site,
-      testim_site: this.site.testim_site,
-      publish_site: this.site.publish_site,
+      // testim_site: this.site.testim_site,
+      // publish_site: this.site.publish_site,
       lng: this.site.geom[1].toFixed(6),
       lat: this.site.geom[0].toFixed(6),
       id_theme: this.site.themes,
       id_stheme: this.site.subthemes,
       code_city_site: this.site.code_city_site,
       main_theme_id: this.site.main_theme_id,
-      legend_site: this.site.legend_site,
+      // legend_site: this.site.legend_site,
       id_observatory: this.site.id_observatory,
     });
+
+    if (translation) {
+      this.siteForm.patchValue({
+        [`name_site_${this.currentLang.langId}`]: nameSite,
+        [`desc_site_${this.currentLang.langId}`]: descSite,
+        [`legend_site_${this.currentLang.langId}`]: legendSite,
+        [`testim_site_${this.currentLang.langId}`]: testimSite || null,
+        [`publish_site_${this.currentLang.langId}`]: publishSite || false,
+        [`code_city_site_${this.defaultLang.langId}`]: this.site.code_city_site,
+      });
+    }
+
     if (this.site.path_file_guide_site) {
       this.noticeName = this.site.path_file_guide_site;
     }
@@ -786,10 +838,79 @@ export class AddSiteComponent implements OnInit, OnDestroy {
     );
   }
 
+  getTranslation(langId: string, obj: any) {
+    console.log('obj', obj);
+    console.log('langId', langId);
+    return obj.translations.find(translation => translation.lang_id === langId);
+  }
+
+  getTranslationCity(langId: string, obj: any) {
+    // console.log('Inside city', obj);
+    const translation = obj.translations.find(translation => translation.lang_id === this.defaultLang.langId);
+    return translation ? translation.nom_commune : obj.code_commune; // Renvoie le nom de la commune ou le code_commune par défaut
+  }
+  getTranslationTheme(langId: string, obj: any) {
+    // console.log('Inside theme', obj);
+    const translation = obj.translations.find(translation => translation.lang_id === this.defaultLang.langId);
+    // console.log('translation theme', translation);
+    return translation ? translation.name_theme : obj.name_theme; // Renvoie le nom de la commune ou le code_commune par défaut
+  }
+
+  getTranslationSubTheme(langId: string, obj: any) {
+    console.log('Inside subthemee', obj);
+    const translation = obj.translations.find(translation => translation.lang_id === this.defaultLang.langId);
+    console.log('translation subtheme', translation);
+    console.log('translation.name_theme', translation.name_stheme);
+    return translation ? translation.name_stheme : obj.name_stheme; // Renvoie le nom de la commune ou le code_commune par défaut
+  }
+  
+  
+
   ngOnDestroy() {
     this.spinner.hide();
     if (this.mySubscription) {
       this.mySubscription.unsubscribe();
     }
   }
+
+
+ // Méthode appelée lors du changement d'onglet
+  changeTab(event: NgbTabChangeEvent): void {
+    const selectedLangId = event.nextId; // ID de l'onglet sélectionné
+    console.log('Langue sélectionnée:', selectedLangId);
+
+    // Si vous souhaitez faire quelque chose avec la langue sélectionnée, comme mettre à jour le formulaire
+    // Vous pouvez le faire ici
+    this.patchForm()
+  }
+  
+
+
+  setLanguage(): void {
+    // Obtenez les langues préférées du navigateur
+    const browserLangs = navigator.languages; // tableau de langues préférées
+    const supportedLangs = this.availableLang.map(lang => lang.langId); // Extraire les langIds supportés
+  
+    // Vérifiez si l'une des langues préférées est supportée
+    for (const lang of browserLangs) {
+      const langCode = lang.split('-')[0]; // Extraire le code de langue (ex: 'fr')
+      if (supportedLangs.includes(langCode)) {
+        // Trouver l'objet correspondant dans availableLang
+        const foundLang = this.availableLang.find(l => l.langId === langCode);
+        if (foundLang) {
+          this.currentLang = { langId: foundLang.langId, langLabel: foundLang.langLabel };
+        }
+        break; // Si une langue supportée est trouvée, on s'arrête ici
+      }
+    }
+  
+    // Si aucune langue supportée n'est trouvée, on définit une langue par défaut
+    if (!this.currentLang) {
+      this.currentLang = this.availableLang[0]; // Langue par défaut (première dans availableLang)
+    }
+  
+    console.log('Langue du navigateur:', this.currentLang);
+  }
+  
+  
 }
