@@ -637,14 +637,16 @@ def add_langs():
     try:
         get_all_existing_langs = models.Lang.query.all()
         langs = {t.id: t for t in get_all_existing_langs}
-        if lang["id"] not in langs:
-            lang_obj = models.Lang(
-                id=lang["id"],
-                label=lang["label"],
-                is_published=lang["is_published"],
-                is_default=lang["is_default"],
-            )
-            db.session.add(lang_obj)
+        if lang["id"] in langs:
+            return jsonify({"error": "lang already exists"}), 409
+        
+        lang_obj = models.Lang(
+            id=lang["id"],
+            label=lang["label"],
+            is_published=lang["is_published"],
+            is_default=lang["is_default"],
+        )
+        db.session.add(lang_obj)
 
         db.session.commit()
 
