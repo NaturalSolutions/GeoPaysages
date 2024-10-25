@@ -93,10 +93,33 @@ def returnAllObservatories():
 def postObservatory():
     try:
         data = dict(request.get_json())
+        translations_data = data.pop("translations", [])
         db_obj = models.Observatory(**data)
+
         db.session.add(db_obj)
         db.session.commit()
+
+        translations = []
+        for translate in translations_data:
+            if "lang_id" not in translate:
+                return (
+                    jsonify({"error": "Each translation must include 'lang_id'."}),
+                    400,
+                )
+
+            translation_obj = models.ObservatoryTranslation(
+                title=translate["title"],
+                is_published=translate["is_published"],
+                lang_id=translate["lang_id"],
+                row_id=db_obj.id,
+            )
+            translations.append(translation_obj)
+
+        db.session.add_all(translations)
+        db.session.commit()
+
     except Exception as exception:
+        db.session.rollback()
         print(exception)
         return str(exception), 400
 
@@ -118,13 +141,42 @@ def returnObservatoryById(id):
 @fnauth.check_auth(2)
 def patchObservatory(id):
     try:
-        rows = models.Observatory.query.filter_by(id=id)
-        if not rows.count():
+        observatory = models.Observatory.query.filter_by(id=id).first()
+        if not observatory:
             abort(404)
         data = request.get_json()
-        rows.update(data)
+        translations_data = data.pop("translations", [])
+
+        models.Observatory.query.filter_by(id=id).update(data)
         db.session.commit()
+
+        for translate in translations_data:
+            if "lang_id" not in translate:
+                return (
+                    jsonify({"error": "Each translation must include 'lang_id'."}),
+                    400,
+                )
+            result = models.ObservatoryTranslation.query.filter_by(
+                row_id=observatory.id, lang_id=translate["lang_id"]
+            ).update(
+                {
+                    "title": translate["title"],
+                    "is_published": translate["is_published"],
+                }
+            )
+            if result == 0:
+                new_translation = models.ObservatoryTranslation(
+                    title=translate["title"],
+                    is_published=translate["is_published"],
+                    lang_id=translate["lang_id"],
+                    row_id=observatory.id,
+                )
+                db.session.add(new_translation)
+
+        db.session.commit()
+
     except Exception as exception:
+        db.session.rollback()
         return str(exception), 400
     row = models.Observatory.query.filter_by(id=id).first()
     dict = observatory_schema_full.dump(row)
@@ -165,7 +217,11 @@ def patchObservatoryImage(id):
 @api.route("/api/sites", methods=["GET"])
 def returnAllSites():
     dbconf = utils.getDbConf()
-    get_all_sites = models.TSite.query.order_by(dbconf["default_sort_sites"]).all()
+    get_all_sites = (
+        models.TSite.query.join(models.TSiteTranslation)
+        .order_by(dbconf["default_sort_sites"])
+        .all()
+    )
     sites = site_schema.dump(get_all_sites)
     for site in sites:
         if len(site.get("t_photos")) > 0:
@@ -295,6 +351,7 @@ def deleteSite(id_site):
     photos = models.TPhoto.query.filter_by(id_site=id_site).all()
     photos = photo_schema.dump(photos)
     models.TPhoto.query.filter_by(id_site=id_site).delete()
+    models.TSiteTranslation.query.filter_by(row_id=id_site).delete()
     site = models.TSite.query.filter_by(id_site=id_site).delete()
     for photo in photos:
         photo_name = photo.get("path_file_photo")
@@ -312,10 +369,38 @@ def deleteSite(id_site):
 @api.route("/api/addSite", methods=["POST"])
 @fnauth.check_auth(2)
 def add_site():
-    data = dict(request.get_json())
-    site = models.TSite(**data)
-    db.session.add(site)
-    db.session.commit()
+    try:
+        data = dict(request.get_json())
+        transalations_data = data.pop("translations", [])
+        site = models.TSite(**data)
+        db.session.add(site)
+        db.session.commit()
+
+        translations = []
+        for translate in transalations_data:
+            if "lang_id" not in translate:
+                return (
+                    jsonify({"error": "Each translation must include 'lang_id'."}),
+                    400,
+                )
+            translation_obj = models.TSiteTranslation(
+                name_site=translate["name_site"],
+                desc_site=translate["desc_site"],
+                testim_site=translate["testim_site"],
+                legend_site=translate["legend_site"],
+                publish_site=translate["publish_site"],
+                lang_id=translate["lang_id"],
+                row_id=site.id_site,
+            )
+            translations.append(translation_obj)
+
+        db.session.add_all(translations)
+        db.session.commit()
+
+    except Exception as exception:
+        db.session.rollback()
+        print(exception)
+        return str(exception), 400
 
     return jsonify(id_site=site.id_site), 200
 
@@ -323,10 +408,59 @@ def add_site():
 @api.route("/api/updateSite", methods=["PATCH"])
 @fnauth.check_auth(2)
 def update_site():
-    site = request.get_json()
-    models.CorSiteSthemeTheme.query.filter_by(id_site=site.get("id_site")).delete()
-    models.TSite.query.filter_by(id_site=site.get("id_site")).update(site)
-    db.session.commit()
+    try:
+        site_data = request.get_json()
+
+        site_id = site_data.get("id_site")
+        if not site_id:
+            return jsonify({"error": "Missing 'id_site'."}), 400
+
+        translations_data = site_data.pop("translations", [])
+
+        models.CorSiteSthemeTheme.query.filter_by(
+            id_site=site_data.get("id_site")
+        ).delete()
+        models.TSite.query.filter_by(id_site=site_id).update(site_data)
+        db.session.commit()
+
+        for translate in translations_data:
+            if "lang_id" not in translate:
+                return (
+                    jsonify({"error": "Each translation must include 'lang_id'."}),
+                    400,
+                )
+
+            result = models.TSiteTranslation.query.filter_by(
+                row_id=site_id, lang_id=translate["lang_id"]
+            ).update(
+                {
+                    "name_site": translate["name_site"],
+                    "desc_site": translate["desc_site"],
+                    "testim_site": translate.get("testim_site"),
+                    "legend_site": translate["legend_site"],
+                    "publish_site": translate["publish_site"],
+                }
+            )
+
+            if result == 0:
+                new_translation = models.TSiteTranslation(
+                    row_id=site_id,
+                    lang_id=translate["lang_id"],
+                    name_site=translate["name_site"],
+                    desc_site=translate["desc_site"],
+                    testim_site=translate.get("testim_site"),
+                    legend_site=translate["legend_site"],
+                    publish_site=translate["publish_site"],
+                )
+                db.session.add(new_translation)
+
+        db.session.commit()
+
+    except Exception as exception:
+        db.session.rollback()
+        print(exception)
+        return str(exception), 400
+
     return jsonify("site updated successfully"), 200
 
 
@@ -493,6 +627,59 @@ def returnAllLanguages():
     get_all_languages = models.Lang.query.all()
     languages = models.LangSchema(many=True).dump(get_all_languages)
     return jsonify(languages), 200
+
+
+@api.route("/api/languages", methods=["POST"])
+@fnauth.check_auth(6)
+def add_languages():
+    data = request.get_json()
+    try:
+        get_all_existing_languages = models.Lang.query.all()
+        languages = {t.id: t for t in get_all_existing_languages}
+        for lang in data:
+            if lang["id"] not in languages:
+                lang_obj = models.Lang(
+                    id=lang["id"],
+                    label=lang["label"],
+                    is_published=lang["is_published"],
+                    is_default=lang["is_default"],
+                )
+                db.session.add(lang_obj)
+
+        db.session.commit()
+
+    except Exception as exception:
+        db.session.rollback()
+        return jsonify({"error": str(exception)}), 400
+
+    return jsonify("languages added")
+
+
+@api.route("/api/language/<string:id>", methods=["PATCH"])
+@fnauth.check_auth(2)
+def update_language(id):
+    data = request.get_json()
+    try:
+        models.Lang.query.filter_by(id=id).update(data)
+        db.session.commit()
+    except Exception as exception:
+        db.session.rollback()
+        return jsonify({"error": str(exception)}), 400
+
+    return jsonify("language updated"), 200
+
+
+@api.route("/api/language/<string:id>", methods=["DELETE"])
+@fnauth.check_auth(6)
+def delete_language(id):
+    try:
+        models.Lang.query.filter_by(id=id).delete()
+        db.session.commit()
+    except Exception as exception:
+        db.session.rollback()
+        return jsonify({"error": str(exception)}), 400
+
+    return jsonify("language deleted"), 200
 
 
 @api.route("/api/logout", methods=["GET"])

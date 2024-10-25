@@ -46,7 +46,6 @@ class Lang(db.Model):
     )
 
 
-
 class ComparatorEnum(Enum):
     sidebyside = "sidebyside"
     split = "split"
