@@ -1,5 +1,29 @@
 <div class="login-page" >
-    <img class="logo" [src]="logoUrl"  > 
+  <div class="header">
+    <div><img class="logo" [src]="logoUrl" alt="Logo"></div>
+    <div class="dropdown-container" ngbDropdown>
+      <div class="icon-language-toggle">
+        <a class="dropdown-toggle" ngbDropdownToggle>
+          <i class="icon-earth"></i>
+        </a>
+          <div class="selected-language">
+            {{ 'LANGUAGES.'+selectedLanguage | translate }}
+          </div>
+      </div>
+      <div class="dropdown-menu dropdown-menu-right" ngbDropdownMenu>
+        <div *ngFor="let lang of availableLanguages">
+          <div class="icon-wrapper">
+          <button class="dropdown-item" (click)="changeLanguage(lang)">
+            {{ 'LANGUAGES.' + lang | translate }}
+          </button>
+          <i *ngIf="lang === selectedLanguage" class="icon-checkmark"></i>
+        </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
   <div class="container">
     <div class="row">
       <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">

@@ -76,7 +76,7 @@ li {
 .language{
   padding-bottom: 3px;
   padding-left: 0px;
-  padding-right: 20px;
+  padding-right: 30px;
   .icon-earth{
     font-size: 26px
   }
@@ -85,4 +85,11 @@ li {
   text-align: center;
   font-size: 14px;
   margin-top: 5px;
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 20px;
 }
