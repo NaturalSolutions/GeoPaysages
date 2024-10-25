@@ -623,29 +623,28 @@ def returnAllcommunes():
     return jsonify(communes), 200
 
 
-@api.route("/api/languages", methods=["GET"])
-def returnAllLanguages():
-    get_all_languages = models.Lang.query.all()
-    languages = models.LangSchema(many=True).dump(get_all_languages)
-    return jsonify(languages), 200
+@api.route("/api/langs", methods=["GET"])
+def returnAllLangs():
+    get_all_langs = models.Lang.query.all()
+    langs = models.LangSchema(many=True).dump(get_all_langs)
+    return jsonify(langs), 200
 
 
-@api.route("/api/languages", methods=["POST"])
+@api.route("/api/langs", methods=["POST"])
 @fnauth.check_auth(6)
-def add_languages():
-    data = request.get_json()
+def add_langs():
+    lang = request.get_json()
     try:
-        get_all_existing_languages = models.Lang.query.all()
-        languages = {t.id: t for t in get_all_existing_languages}
-        for lang in data:
-            if lang["id"] not in languages:
-                lang_obj = models.Lang(
-                    id=lang["id"],
-                    label=lang["label"],
-                    is_published=lang["is_published"],
-                    is_default=lang["is_default"],
-                )
-                db.session.add(lang_obj)
+        get_all_existing_langs = models.Lang.query.all()
+        langs = {t.id: t for t in get_all_existing_langs}
+        if lang["id"] not in langs:
+            lang_obj = models.Lang(
+                id=lang["id"],
+                label=lang["label"],
+                is_published=lang["is_published"],
+                is_default=lang["is_default"],
+            )
+            db.session.add(lang_obj)
 
         db.session.commit()
 
@@ -653,12 +652,12 @@ def add_languages():
         db.session.rollback()
         return jsonify({"error": str(exception)}), 400
 
-    return jsonify("languages added")
+    return jsonify("langs added")
 
 
-@api.route("/api/language/<string:id>", methods=["PATCH"])
+@api.route("/api/langs/<string:id>", methods=["PATCH"])
 @fnauth.check_auth(2)
-def update_language(id):
+def update_lang(id):
     data = request.get_json()
     try:
         models.Lang.query.filter_by(id=id).update(data)
@@ -667,12 +666,12 @@ def update_language(id):
         db.session.rollback()
         return jsonify({"error": str(exception)}), 400
 
-    return jsonify("language updated"), 200
+    return jsonify("lang updated"), 200
 
 
-@api.route("/api/language/<string:id>", methods=["DELETE"])
+@api.route("/api/langs/<string:id>", methods=["DELETE"])
 @fnauth.check_auth(6)
-def delete_language(id):
+def delete_lang(id):
     try:
         models.Lang.query.filter_by(id=id).delete()
         db.session.commit()
@@ -680,7 +679,7 @@ def delete_language(id):
         db.session.rollback()
         return jsonify({"error": str(exception)}), 400
 
-    return jsonify("language deleted"), 200
+    return jsonify("lang deleted"), 200
 
 
 @api.route("/api/logout", methods=["GET"])
