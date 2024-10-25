@@ -630,6 +630,7 @@ def returnAllLanguages():
 
 
 @api.route("/api/languages", methods=["POST"])
+@fnauth.check_auth(6)
 def add_languages():
     data = request.get_json()
     try:
@@ -655,6 +656,7 @@ def add_languages():
 
 
 @api.route("/api/language/<string:id>", methods=["PATCH"])
+@fnauth.check_auth(2)
 def update_language(id):
     data = request.get_json()
     try:
@@ -668,6 +670,7 @@ def update_language(id):
 
 
 @api.route("/api/language/<string:id>", methods=["DELETE"])
+@fnauth.check_auth(6)
 def delete_language(id):
     try:
         models.Lang.query.filter_by(id=id).delete()
