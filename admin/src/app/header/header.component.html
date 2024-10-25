@@ -42,9 +42,12 @@
         </a>
         <div class="dropdown-menu dropdown-menu-right" ngbDropdownMenu>
           <div *ngFor="let lang of availableLanguages">
-            <button class="dropdown-item" (click)="changeLanguage(lang)">
-              {{ 'LANGUAGES.'+lang | translate }}
-            </button>
+            <div class="icon-wrapper">
+              <button class="dropdown-item" (click)="changeLanguage(lang)">
+                {{ 'LANGUAGES.' + lang | translate }}
+              </button>
+              <i *ngIf="lang === selectedLanguage" class="icon-checkmark"></i>
+            </div>
           </div>
         </div>
         <div class="selected-language">

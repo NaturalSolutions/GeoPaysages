@@ -17,7 +17,8 @@ export class LoginPageComponent implements OnInit {
   userForm: any;
   currentUser: User;
   logoUrl: string;
-  currentLang: string;
+  availableLanguages: string[] = [];
+  selectedLanguage: string;
 
   constructor(
     private loginService: LoginService,
@@ -28,7 +29,10 @@ export class LoginPageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.currentLang =  this.languageService.getCurrentLang();
+    this.selectedLanguage = this.languageService.getCurrentLang();
+    this.languageService.getAvailableLanguages().subscribe(languages => {
+      this.availableLanguages = languages;
+    });
     this.logoUrl = `${Conf.customFiles}images/logo_txt_blanc.png`;
     this.loginForm = this.formBuilder.group({
       login: ['', Validators.required],
@@ -75,5 +79,10 @@ export class LoginPageComponent implements OnInit {
       return 'password';
     }
     return 'required';
+  }
+
+  changeLanguage(lang: string) {
+    this.languageService.changeLanguage(lang);
+    this.selectedLanguage = lang;
   }
 }
