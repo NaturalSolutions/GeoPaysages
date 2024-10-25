@@ -8,6 +8,7 @@ from flask import (
     current_app,
 )
 from flask_login import login_required, current_user
+from sqlalchemy import text
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import FileWrapper
 
@@ -219,7 +220,7 @@ def returnAllSites():
     dbconf = utils.getDbConf()
     get_all_sites = (
         models.TSite.query.join(models.TSiteTranslation)
-        .order_by(dbconf["default_sort_sites"])
+        .order_by(text(dbconf["default_sort_sites"]))
         .all()
     )
     sites = site_schema.dump(get_all_sites)
