@@ -160,9 +160,10 @@
             <button class="btn btn-outline-success btn-submit" type="submit" [disabled]="!edit_btn">
               {{ submit_btn_text | translate }}
             </button>
+            <!-- TODO: check if max_level_profil can be id_droit_max -->
             <button type="button" *ngIf="id_site && currentUser.max_level_profil > 5"
               class="btn btn-outline-danger btn-delete" (click)="openDeleteModal(content)">
-              <i class="icon-bin delete-site"></i>Supprimer le site
+              <i class="icon-bin delete-site"></i>{{ 'ACTIONS.DELETE' | translate: {article:('ARTICLES.LE' | translate), varname: ('SITE_MNGMT.SITE' | translate) }  }}
             </button>
             <button class="btn btn-outline-secondary btn-cancel" type="button" (click)="onCancel()">
               {{ 'BUTTONS.BACK_TO_LIST' | translate }}
