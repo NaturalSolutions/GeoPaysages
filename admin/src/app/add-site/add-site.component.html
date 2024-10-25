@@ -16,9 +16,9 @@
           </div>
           <div class="row form-item">
             <div class="col">
-              <label class="label" for="site-name">{{ 'FIELDS.NAME' | translate: {article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) }  }}*</label>
+              <label class="label" for="site-name">{{ 'FIELDS.NAME' | translate: { article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) } }}*</label>
               <input InputFeedBack type="text" formControlName="name_site" id="site-name" class="form-control"
-                placeholder="{{ 'FIELDS.NAME' | translate: {varname: ('SITE_MNGMT.SITE' | translate) }  }}" />
+                placeholder="{{ 'FIELDS.NAME' | translate: { article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) } }}" />
               <app-form-error controlName="name_site" errorKey="required"></app-form-error>
             </div>
             <div class="col">
