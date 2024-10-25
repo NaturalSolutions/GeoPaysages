@@ -19,11 +19,16 @@ themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
 
 
 def getLocale():
-    return request.view_args.get("locale", "fr")
+    locale = request.view_args.get("locale")
+    if locale is None:
+        lang = models.Lang.query.filter_by(is_default=True).first()
+        locale = lang.id
+    return locale
 
 
 def isMultiLangs():
-    return False
+    count = models.Lang.query.filter_by(is_published=True).count()
+    return count > 1
 
 
 def getCustomTpl(name):

@@ -23,27 +23,26 @@ def localeGuard(f):
         locale = request.view_args.get("locale")
         if not utils.isMultiLangs() and locale is not None:
             return redirect(url_for(request.endpoint))
+        langs = models.Lang.query.filter_by(is_published=True).all()
+        lang_ids = [lang.id for lang in langs]
+        defaultLang = next((lang for lang in langs if lang.is_default), None)
+        if utils.isMultiLangs() and locale not in lang_ids:
+            return redirect(url_for(request.endpoint, locale=defaultLang.id))
+
         if utils.isMultiLangs() and locale is None:
-            matched_locale = request.accept_languages.best_match(["fr", "en"])
-            if matched_locale is None:
-                return redirect("/")
-            return redirect(url_for(request.endpoint, locale=matched_locale))
+            userLang = request.accept_languages[0][0].split("-")[0]
+            if userLang in lang_ids:
+                return redirect(url_for(request.endpoint, locale=userLang))
+            return redirect(url_for(request.endpoint, locale=defaultLang.id))
         return f(*args, **kwargs)
 
     return decorated_function
 
 
-def homeLocaleSelector():
-    return "Select a language"
-
-
 @main.route("/")
 @main.route("/<string:locale>/")
+@localeGuard
 def home(locale=None):
-    if utils.isMultiLangs() and locale is None:
-        return homeLocaleSelector()
-    if not utils.isMultiLangs() and locale is not None:
-        return redirect("/")
     locale = utils.getLocale()
     site_schema = models.TSiteSchema(many=True, locale=locale)
     communes_schema = models.CommunesSchema(many=True, locale=locale)
@@ -176,7 +175,7 @@ def home(locale=None):
     )
 
 
-@main.route("/gallery")
+@main.route("/gallery/")
 def gallery():
     data = utils.getFiltersData()
 
@@ -188,8 +187,8 @@ def gallery():
     )
 
 
-@main.route("/sites/<int:id_site>")
-@main.route("/<string:locale>/sites/<int:id_site>")
+@main.route("/sites/<int:id_site>/")
+@main.route("/<string:locale>/sites/<int:id_site>/")
 @localeGuard
 def site(id_site, locale):
     site_schema = models.TSiteSchema(many=True, locale=locale)
@@ -249,7 +248,7 @@ def site(id_site, locale):
     )
 
 
-@main.route("/sites/<int:id_site>/photos/latest")
+@main.route("/sites/<int:id_site>/photos/latest/")
 def site_photos_last(id_site):
     site_schema = models.TSiteSchema(many=True)
     get_site_by_id = models.TSite.query.filter_by(id_site=id_site, publish_site=True)
@@ -277,7 +276,7 @@ def site_photos_last(id_site):
     return render_template("site_photo.jinja", site=site, photo=photo)
 
 
-@main.route("/sites")
+@main.route("/sites/")
 @main.route("/<string:locale>/sites/")
 @localeGuard
 def sites(locale=None):
