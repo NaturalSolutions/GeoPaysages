@@ -648,10 +648,35 @@ def add_languages():
         db.session.commit()
 
     except Exception as exception:
-        db.session.rollback() 
+        db.session.rollback()
         return jsonify({"error": str(exception)}), 400
 
     return jsonify("languages added")
+
+
+@api.route("/api/language/<string:id>", methods=["PATCH"])
+def update_language(id):
+    data = request.get_json()
+    try:
+        models.Lang.query.filter_by(id=id).update(data)
+        db.session.commit()
+    except Exception as exception:
+        db.session.rollback()
+        return jsonify({"error": str(exception)}), 400
+
+    return jsonify("language updated"), 200
+
+
+@api.route("/api/language/<string:id>", methods=["DELETE"])
+def delete_language(id):
+    try:
+        models.Lang.query.filter_by(id=id).delete()
+        db.session.commit()
+    except Exception as exception:
+        db.session.rollback()
+        return jsonify({"error": str(exception)}), 400
+
+    return jsonify("language deleted"), 200
 
 
 @api.route("/api/logout", methods=["GET"])
