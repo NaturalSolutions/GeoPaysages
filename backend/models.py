@@ -21,16 +21,13 @@ class Conf(db.Model):
 
 class Lang(db.Model):
     __tablename__ = "lang"
-    __table_args__ = ({"schema": "geopaysages"},)
+    __table_args__ = {"schema": "geopaysages"}
 
     id = db.Column(db.String, primary_key=True)
     label = db.Column(db.String)
     is_published = db.Column(db.Boolean)
     is_default = db.Column(db.Boolean, default=False)
-    __table_args__ = (
-        db.UniqueConstraint("is_default", name="uq_default_lang"),
-        {"schema": "geopaysages"},
-    )
+
     observatory_translations = db.relationship(
         "ObservatoryTranslation", back_populates="lang"
     )

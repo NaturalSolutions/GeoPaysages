@@ -26,7 +26,14 @@ def upgrade():
         sa.Column("is_published", sa.Boolean(), nullable=True),
         sa.Column("is_default", sa.Boolean(), nullable=True, default=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("is_default", name="uq_default_lang"),
+        schema="geopaysages",
+    )
+    op.create_index(
+        "unique_is_default_true",
+        "lang",
+        ["is_default"],
+        unique=True,
+        postgresql_where=sa.text("is_default IS TRUE"),
         schema="geopaysages",
     )
     # Insert default lang 'fr'
