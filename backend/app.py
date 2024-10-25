@@ -3,7 +3,7 @@ from pypnusershub import routes
 from pypnusershub.login_manager import login_manager
 from routes import main as main_blueprint
 from flask import Flask
-from flask_babel import Babel, get_locale
+from flask_babel import Babel
 from flask_cors import CORS
 from api import api
 import config
@@ -56,6 +56,10 @@ babel = Babel(app)
 # app.wsgi_app = ReverseProxied(app.wsgi_app)
 CORS(app, supports_credentials=True)
 
+@babel.localeselector
+def determine_locale():
+    return utils.getLocale()
+
 app.register_blueprint(main_blueprint)
 app.register_blueprint(api)
 app.register_blueprint(custom_app.custom)
@@ -71,9 +75,9 @@ migrate.init_app(app, db)
 def inject_to_tpl():
     custom = custom_app.custom_inject_to_tpl()
     data = dict(
-        dbconf=utils.getDbConf(),
-        debug=app.debug,
-        locale=get_locale(),
+        dbconf=utils.getDbConf(), 
+        debug=app.debug, 
+        locale=utils.getLocale(), 
         isMultiObservatories=utils.isMultiObservatories,
         getThumborUrl=utils.getThumborUrl,
         getCustomTpl=utils.getCustomTpl,

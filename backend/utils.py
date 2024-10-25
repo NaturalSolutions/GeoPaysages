@@ -1,10 +1,10 @@
 from base64 import urlsafe_b64encode
-from flask import url_for
+from flask import url_for, request
 import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 import json
-from flask_babel import get_locale, gettext
+from flask_babel import gettext
 import random
 import string
 import models
@@ -14,16 +14,20 @@ import urllib.parse
 
 db = SQLAlchemy()
 
-dicotheme_schema = models.DicoThemeSchema(many=True)
-dicostheme_schema = models.DicoSthemeSchema(many=True)
 photo_schema = models.TPhotoSchema(many=True)
-observatory_schema = models.ObservatorySchema(many=True)
-site_schema = models.TSiteSchema(many=True)
 themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
 
 
+def getLocale():
+    return request.view_args.get("locale", "fr")
+
+
+def isMultiLangs():
+    return False
+
+
 def getCustomTpl(name):
-    tpl_local = f"custom/{name}_{get_locale().__str__()}.jinja"
+    tpl_local = f"custom/{name}_{getLocale()}.jinja"
     tpl_common = f"custom/{name}.jinja"
     if os.path.exists(f"tpl/{tpl_local}"):
         return tpl_local
@@ -67,29 +71,59 @@ def getDbConf():
         except Exception as exception:
             conf[row.get("key")] = row.get("value")
 
-    conf["default_sort_sites"] = conf.get("default_sort_sites", "name_site")
+    conf["default_sort_sites"] = conf.get(
+        "default_sort_sites", "geopaysages.t_site_translation.name_site"
+    )
 
     return conf
 
 
 def isMultiObservatories():
-    # Pourrait passer par un count sql
-    sql = text("SELECT id FROM geopaysages.t_observatory where is_published is true")
-    result = db.engine.execute(sql).fetchall()
-    rows = [dict(row) for row in result]
-    if len(rows) > 1:
+    locale = getLocale()
+    sql = text(
+        f"""SELECT count(*) 
+        FROM geopaysages.t_observatory o 
+        join geopaysages.t_observatory_translation ot on o.id = ot.row_id and ot.lang_id = '{locale}' 
+        where ot.is_published is true"""
+    )
+    result = db.engine.execute(sql)
+    count = result.scalar()
+    if count > 1:
         return True
     return False
 
 
+def getLocalizedSitesQuery():
+    locale = getLocale()
+    return (
+        models.TSite.query.join(
+            models.TSiteTranslation,
+            (models.TSite.id_site == models.TSiteTranslation.row_id)
+            & (models.TSiteTranslation.lang_id == locale),
+        )
+        .join(models.Observatory)
+        .join(
+            models.ObservatoryTranslation,
+            (models.Observatory.id == models.ObservatoryTranslation.row_id)
+            & (models.ObservatoryTranslation.lang_id == locale),
+        )
+        .filter(
+            models.TSiteTranslation.publish_site == True,
+            models.ObservatoryTranslation.is_published == True,
+        )
+    )
+
+
 def getFiltersData():
     dbconf = getDbConf()
+    locale = getLocale()
+    observatory_schema = models.ObservatorySchema(many=True, locale=locale)
+    site_schema = models.TSiteSchema(many=True, locale=locale)
+    dicotheme_schema = models.DicoThemeSchema(many=True, locale=locale)
+    dicostheme_schema = models.DicoSthemeSchema(many=True, locale=locale)
+
     sites = site_schema.dump(
-        models.TSite.query.join(models.Observatory)
-        .filter(
-            models.TSite.publish_site == True, models.Observatory.is_published == True
-        )
-        .order_by(dbconf["default_sort_sites"])
+        getLocalizedSitesQuery().order_by(text(dbconf["default_sort_sites"]))
     )
     for site in sites:
         cor_sthemes_themes = site.get("cor_site_stheme_themes")
@@ -191,11 +225,11 @@ def getFiltersData():
         filter for filter in filters if filter.get("name") == "township"
     ][0]
     str_map_in = ["'" + township + "'" for township in filter_township.get("items")]
-    sql_map_str = (
-        "SELECT code_commune AS id, nom_commune AS label FROM geopaysages.communes WHERE code_commune IN ("
-        + ",".join(str_map_in)
-        + ")"
-    )
+    sql_map_str = f"""SELECT c.code_commune AS id, ct.nom_commune AS label 
+        FROM geopaysages.communes c
+        JOIN geopaysages.communes_translation ct on ct.row_id = c.code_commune
+        WHERE code_commune IN ({",".join(str_map_in)})
+        AND ct.lang_id = '{locale}'"""
     sql_map = text(sql_map_str)
     townships_result = db.engine.execute(sql_map).fetchall()
     townships = [dict(row) for row in townships_result]
@@ -278,7 +312,7 @@ def getFiltersData():
             observatories.append(
                 {
                     "id": site["id_observatory"],
-                    "label": site["observatory"]["title"],
+                    "label": observatory["title"],
                     "data": {
                         "geom": observatory["geom"],
                         "color": observatory["color"],

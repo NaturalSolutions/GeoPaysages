@@ -1,11 +1,11 @@
-from flask import render_template, Blueprint, abort
+from flask import render_template, Blueprint, abort, request, redirect, url_for
+from functools import wraps
 from sqlalchemy import text
 from sqlalchemy.sql.expression import desc
 import models
 import utils
 from config import COMPARATOR_VERSION
 from datetime import datetime
-from flask_babel import format_datetime
 import math
 import os
 
@@ -13,19 +13,47 @@ main = Blueprint("main", __name__, template_folder="tpl")
 
 from env import db
 
-dicotheme_schema = models.DicoThemeSchema(many=True)
-dicostheme_schema = models.DicoSthemeSchema(many=True)
 photo_schema = models.TPhotoSchema(many=True)
-observatory_schema_lite = models.ObservatorySchemaLite(many=True)
-site_schema = models.TSiteSchema(many=True)
 themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
-communes_schema = models.CommunesSchema(many=True)
+
+
+def localeGuard(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        locale = request.view_args.get("locale")
+        if not utils.isMultiLangs() and locale is not None:
+            return redirect(url_for(request.endpoint))
+        if utils.isMultiLangs() and locale is None:
+            matched_locale = request.accept_languages.best_match(["fr", "en"])
+            if matched_locale is None:
+                return redirect("/")
+            return redirect(url_for(request.endpoint, locale=matched_locale))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def homeLocaleSelector():
+    return "Select a language"
 
 
 @main.route("/")
-def home():
+@main.route("/<string:locale>/")
+def home(locale=None):
+    if utils.isMultiLangs() and locale is None:
+        return homeLocaleSelector()
+    if not utils.isMultiLangs() and locale is not None:
+        return redirect("/")
+    locale = utils.getLocale()
+    site_schema = models.TSiteSchema(many=True, locale=locale)
+    communes_schema = models.CommunesSchema(many=True, locale=locale)
     sql = text(
-        "SELECT * FROM geopaysages.t_site p join geopaysages.t_observatory o on o.id=p.id_observatory where p.publish_site=true and o.is_published is true ORDER BY RANDOM() LIMIT 6"
+        f"""SELECT * FROM geopaysages.t_site p 
+        join geopaysages.t_site_translation pt on p.id_site=pt.row_id and pt.lang_id = '{locale}'
+        join geopaysages.t_observatory o on o.id=p.id_observatory 
+        join geopaysages.t_observatory_translation ot on o.id=ot.row_id and ot.lang_id = '{locale}'
+        where pt.publish_site=true and ot.is_published is true ORDER BY RANDOM() LIMIT 6
+        """
     )
     sites_proxy = db.engine.execute(sql).fetchall()
     sites = [dict(row.items()) for row in sites_proxy]
@@ -51,9 +79,14 @@ def home():
     # WAHO tordu l'histoire!
     if len(sites_without_photo):
         sql_missing_photos_str = (
-            "select distinct on (id_site) p.* from geopaysages.t_photo p join geopaysages.t_observatory o on o.id=p.id_observatory where p.id_site IN ("
+            "select distinct on (id_site) p.* from geopaysages.t_photo p "
+            + "join geopaysages.t_observatory o on o.id=p.id_observatory "
+            + "join geopaysages.t_observatory_translation ot on o.id=ot.row_id and ot.lang_id = '"
+            + locale
+            + "' "
+            + "where p.id_site IN ("
             + ",".join(sites_without_photo)
-            + ") and o.is_published is true order by id_site, filter_date desc"
+            + ") and ot.is_published is true order by id_site, filter_date desc"
         )
         sql_missing_photos = text(sql_missing_photos_str)
         missing_photos_result = db.engine.execute(sql_missing_photos).fetchall()
@@ -86,8 +119,20 @@ def home():
         )
 
     all_sites = site_schema.dump(
-        models.TSite.query.join(models.Observatory).filter(
-            models.TSite.publish_site == True, models.Observatory.is_published == True
+        models.TSite.query.join(
+            models.TSiteTranslation,
+            (models.TSite.id_site == models.TSiteTranslation.row_id)
+            & (models.TSiteTranslation.lang_id == locale),
+        )
+        .join(models.Observatory)
+        .join(
+            models.ObservatoryTranslation,
+            (models.Observatory.id == models.ObservatoryTranslation.row_id)
+            & (models.ObservatoryTranslation.lang_id == locale),
+        )
+        .filter(
+            models.TSiteTranslation.publish_site == True,
+            models.ObservatoryTranslation.is_published == True,
         )
     )
 
@@ -97,9 +142,16 @@ def home():
     carousel_photos = list(filter(lambda x: x != ".gitkeep", carousel_photos))
 
     if utils.isMultiObservatories() == True:
-        observatories = models.Observatory.query.filter(
-            models.Observatory.is_published == True
-        ).order_by(models.Observatory.title)
+        observatories = (
+            models.Observatory.query.join(
+                models.ObservatoryTranslation,
+                (models.Observatory.id == models.ObservatoryTranslation.row_id)
+                & (models.ObservatoryTranslation.lang_id == locale),
+            )
+            .filter(models.ObservatoryTranslation.is_published == True)
+            .order_by(models.ObservatoryTranslation.title)
+        )
+        observatory_schema_lite = models.ObservatorySchemaLite(many=True, locale=locale)
         dump_observatories = observatory_schema_lite.dump(observatories)
 
         col_max = 5
@@ -137,7 +189,11 @@ def gallery():
 
 
 @main.route("/sites/<int:id_site>")
-def site(id_site):
+@main.route("/<string:locale>/sites/<int:id_site>")
+@localeGuard
+def site(id_site, locale):
+    site_schema = models.TSiteSchema(many=True, locale=locale)
+    communes_schema = models.CommunesSchema(many=True, locale=locale)
     get_site_by_id = models.TSite.query.filter_by(id_site=id_site, publish_site=True)
     site = site_schema.dump(get_site_by_id)
     if len(site) == 0:
@@ -195,6 +251,7 @@ def site(id_site):
 
 @main.route("/sites/<int:id_site>/photos/latest")
 def site_photos_last(id_site):
+    site_schema = models.TSiteSchema(many=True)
     get_site_by_id = models.TSite.query.filter_by(id_site=id_site, publish_site=True)
     site = site_schema.dump(get_site_by_id)
     if len(site) == 0:
@@ -221,7 +278,9 @@ def site_photos_last(id_site):
 
 
 @main.route("/sites")
-def sites():
+@main.route("/<string:locale>/sites/")
+@localeGuard
+def sites(locale=None):
     data = utils.getFiltersData()
 
     return render_template(
@@ -232,7 +291,9 @@ def sites():
     )
 
 
-@main.route("/legal-notices")
+@main.route("/legal-notices/")
+@main.route("/<string:locale>/legal-notices/")
+@localeGuard
 def legal_notices():
 
     tpl = utils.getCustomTpl("legal_notices")
