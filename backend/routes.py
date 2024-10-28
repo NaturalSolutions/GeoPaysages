@@ -176,7 +176,8 @@ def home(locale=None):
 
 
 @main.route("/gallery/")
-def gallery():
+@main.route("/<string:locale>/gallery/")
+def gallery(locale):
     data = utils.getFiltersData()
 
     return render_template(
