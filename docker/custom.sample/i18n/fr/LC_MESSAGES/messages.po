@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-10-23 12:32+0000\n"
+"POT-Creation-Date: 2024-10-28 17:23+0000\n"
 "PO-Revision-Date: 2018-12-21 11:34+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,23 +18,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: utils.py:127
+#: utils.py:176
 msgid "sites.filter.themes"
 msgstr "Thème"
 
-#: utils.py:131
+#: utils.py:179
 msgid "sites.filter.subthemes"
 msgstr "Sous-thème"
 
-#: utils.py:136
+#: utils.py:185
 msgid "sites.filter.township"
 msgstr "Commune"
 
-#: utils.py:141
+#: utils.py:191
 msgid "sites.filter.years"
 msgstr "Année"
 
-#: utils.py:260
+#: utils.py:336
 msgid "sites.filter.obervatories"
 msgstr "Observatoire"
 
@@ -148,39 +148,39 @@ msgstr "Sites d'observation"
 msgid "sites.observation_points.title"
 msgstr "Sites d'observation"
 
-#: tpl/sites.jinja:77
+#: tpl/sites.jinja:78
 msgid "sites.observation_points.item"
 msgstr "site(s) d'observation"
 
-#: tpl/sites.jinja:110 tpl/sites.jinja:113
+#: tpl/sites.jinja:112 tpl/sites.jinja:115
 msgid "map.share.button"
 msgstr "Partager"
 
-#: tpl/sites.jinja:119
+#: tpl/sites.jinja:121
 msgid "map.legend.obervatories"
 msgstr "Observatoire(s)"
 
-#: tpl/sites.jinja:125
+#: tpl/sites.jinja:127
 msgid "map.legend.themes"
 msgstr "Thème(s)"
 
-#: tpl/sites.jinja:137
+#: tpl/sites.jinja:139
 msgid "map.legend.title"
 msgstr "Légende"
 
-#: tpl/sites.jinja:147
+#: tpl/sites.jinja:149
 msgid "map.share.dialog.title"
 msgstr "Partager"
 
-#: tpl/sites.jinja:148
+#: tpl/sites.jinja:150
 msgid "map.share.dialog.message"
 msgstr "Copier et partager le lien ci-dessus"
 
-#: tpl/sites.jinja:165
+#: tpl/sites.jinja:167
 msgid "map.share.copy_success.title"
 msgstr "Copié !"
 
-#: tpl/sites.jinja:166
+#: tpl/sites.jinja:168
 msgid "map.share.copy.copy_success.message"
 msgstr "Le lien est prêt à être coller."
 
@@ -236,7 +236,7 @@ msgstr "1 mois"
 msgid "comparatorv2.date.steps.1y"
 msgstr "1 an"
 
-#: tpl/components/legal-footer.jinja:1 tpl/custom/footer.jinja:3
+#: tpl/components/legal-footer.jinja:1
 msgid "footer.copyright"
 msgstr "© 2023 - GeoPaysages, logiciel libre et open-source"
 
@@ -253,8 +253,16 @@ msgid "header.nav.home"
 msgstr "Accueil"
 
 #: tpl/custom/main_menu.jinja:8
+msgid "header.nav.about"
+msgstr "À propos"
+
+#: tpl/custom/main_menu.jinja:13
 msgid "header.nav.sites"
 msgstr "Sites d'observation"
+
+#: tpl/custom/main_menu.jinja:18
+msgid "header.nav.gallery"
+msgstr "Galerie photo"
 
 #~ msgid "map.filter.themes"
 #~ msgstr "Thème"
