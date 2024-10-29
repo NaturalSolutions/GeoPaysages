@@ -26,14 +26,22 @@ def localeGuard(f):
         langs = models.Lang.query.filter_by(is_published=True).all()
         lang_ids = [lang.id for lang in langs]
         defaultLang = next((lang for lang in langs if lang.is_default), None)
-        if utils.isMultiLangs() and locale not in lang_ids:
-            return redirect(url_for(request.endpoint, locale=defaultLang.id))
+        if utils.isMultiLangs() and locale is not None and locale not in lang_ids:
+            view_args = dict(**request.view_args)
+            view_args.pop("locale", None)
+            return redirect(
+                url_for(request.endpoint, locale=defaultLang.id, **view_args)
+            )
 
         if utils.isMultiLangs() and locale is None:
             userLang = request.accept_languages[0][0].split("-")[0]
             if userLang in lang_ids:
-                return redirect(url_for(request.endpoint, locale=userLang))
-            return redirect(url_for(request.endpoint, locale=defaultLang.id))
+                return redirect(
+                    url_for(request.endpoint, locale=userLang, **request.view_args)
+                )
+            return redirect(
+                url_for(request.endpoint, locale=defaultLang.id, **request.view_args)
+            )
         return f(*args, **kwargs)
 
     return decorated_function
@@ -194,7 +202,9 @@ def gallery(locale):
 def site(id_site, locale):
     site_schema = models.TSiteSchema(many=True, locale=locale)
     communes_schema = models.CommunesSchema(many=True, locale=locale)
-    get_site_by_id = models.TSite.query.filter_by(id_site=id_site, publish_site=True)
+    get_site_by_id = utils.getLocalizedSitesQuery().filter(
+        models.TSite.id_site == id_site
+    )
     site = site_schema.dump(get_site_by_id)
     if len(site) == 0:
         return abort(404)
@@ -294,7 +304,7 @@ def sites(locale=None):
 @main.route("/legal-notices/")
 @main.route("/<string:locale>/legal-notices/")
 @localeGuard
-def legal_notices():
+def legal_notices(locale):
 
     tpl = utils.getCustomTpl("legal_notices")
 
