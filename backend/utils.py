@@ -21,6 +21,7 @@ themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
 def getLocale():
     locale = request.view_args.get("locale")
     if locale is None:
+        #TODO
         lang = models.Lang.query.filter_by(is_default=True).first()
         locale = lang.id
     return locale
@@ -30,6 +31,11 @@ def isMultiLangs():
     count = models.Lang.query.filter_by(is_published=True).count()
     return count > 1
 
+def getLocalizedLink(link):
+    is_multi_langs = isMultiLangs()
+    if not is_multi_langs:
+        return link
+    return f"/{getLocale()}{link}"
 
 def getCustomTpl(name):
     tpl_local = f"custom/{name}_{getLocale()}.jinja"

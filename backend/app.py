@@ -83,6 +83,7 @@ def inject_to_tpl():
         isMultiObservatories=utils.isMultiObservatories,
         getThumborUrl=utils.getThumborUrl,
         getCustomTpl=utils.getCustomTpl,
+        getLocalizedLink=utils.getLocalizedLink,
     )
     data.update(custom)
     return data
