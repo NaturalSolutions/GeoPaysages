@@ -383,10 +383,25 @@ class GeographySerializationField(fields.String):
 def get_translated_data(self, data):
     if not self.lang_id:
         return data
+    
+    translation = None
+    for data_translation in data["translations"]:
+        if data_translation["lang_id"] == self.lang_id:
+            translation = data_translation
+            break
+
+    if not translation:
+        translation = next(
+            (
+                translation
+                for translation in data["translations"]
+                if translation["lang"]["is_default"] == True
+            ),
+            None,
+        )
+
     for field in self.translatable_fields:
-        for translation in data["translations"]:
-            if translation["lang_id"] == self.lang_id:
-                data[field] = translation[field]
+        data[field] = translation[field]
     return data
 
 
