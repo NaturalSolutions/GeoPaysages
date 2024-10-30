@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ObservatoriesService } from '../services/observatories.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalRef, NgbTabChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup } from '@angular/forms';
 import { FormService } from '../services/form.service';
 import { Conf } from './../config';
@@ -9,10 +9,13 @@ import * as _ from 'lodash';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../services/auth.service';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { ObservatoryPatchType, ObservatoryType } from '../types';
+import { Language, ObservatoryPatchType, ObservatoryPostType, ObservatoryType } from '../types';
 import * as io from 'jsts/org/locationtech/jts/io';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest, Observable } from 'rxjs';
+import { FormConstants, formLabels } from '../constants/app.constants';
+import { TranslationService } from '../services/translation.service';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-observatory',
@@ -52,6 +55,12 @@ export class ObservatoryComponent implements OnInit {
   communes: undefined;
   currentUser: any;
   removed_notice: any = null;
+  availableLang: Language[]
+  currentTabLangId: string;
+  errorMessage: string = 'test';
+  isInvalidForm: boolean = false;
+  defaultLang:Language;
+
   constructor(
     private observatoryService: ObservatoriesService,
     public formService: FormService,
@@ -61,16 +70,21 @@ export class ObservatoryComponent implements OnInit {
     private modalService: NgbModal,
     private authService: AuthService,
     private spinner: NgxSpinnerService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private translationService : TranslationService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
+    this.availableLang = this.languageService.getLanguagesDB()
+    this.defaultLang = this.languageService.getDefaultLanguageDB();
+    this.currentTabLangId =  this.availableLang[0].id;
     this.currentUser = this.authService.currentUser;
     this.id_observatory = this.route.snapshot.params['id'];
-    this.observatoryForm = this.formService.initFormObservatory();
+    this.observatoryForm = this.formService.initFormObservatory(this.availableLang);
     if (this.id_observatory) {
       this.getObservatory(this.id_observatory);
-      this.submit_btn_text = 'BUTTONS.ADD';
+      this.submit_btn_text = 'BUTTONS.SUBMIT';
     } else {
       this.isEditing = true;
       this.loadForm = true;
@@ -114,8 +128,17 @@ export class ObservatoryComponent implements OnInit {
   }
 
   async submitObservatory(observatoryForm) {
+
+    observatoryForm.updateValueAndValidity();
+    console.log('SUBMIT observatoryForm', observatoryForm);
     this.alert = null;
-    if (!observatoryForm.valid) {
+    console.log("observatoryForm.valid", observatoryForm.valid);
+    console.log("this.observatoryForm.valid", this.observatoryForm.valid);
+    const isValidForm = this.formService.checkAllControlStatuses(observatoryForm);
+    if (!isValidForm) {
+      this.isInvalidForm = true;
+      this.errorMessage =this.generateErrorMessage();
+      console.log("this.errorMessage", this.errorMessage);
       return;
     }
     if (observatoryForm.value.geom) {
@@ -151,7 +174,6 @@ export class ObservatoryComponent implements OnInit {
       if (!this.id_observatory) {
         const res = await this.postObservatory();
         await this.patchImages(res.id);
-        console.log('res', res);
 
         this.router.navigate(['observatories', 'details', res.id]);
         return;
@@ -210,7 +232,10 @@ export class ObservatoryComponent implements OnInit {
 
   postObservatory(): Promise<ObservatoryType> {
     return new Promise((resolve, reject) => {
-      this.observatoryService.post(this.observatoryForm.value).subscribe(
+      const formValue = this.observatoryForm.value;
+      const post: ObservatoryPostType = this.createPostObject(formValue, this.availableLang);
+    
+      this.observatoryService.post(post).subscribe(
         (res) => {
           this.translate.get("INFO_MESSAGE.SUCCESS_ADDED_OBSERVATORY").subscribe((message: string) => {
             this.toastr.success(message, '', {
@@ -230,11 +255,14 @@ export class ObservatoryComponent implements OnInit {
     return new Promise((resolve, reject) => {
       const patch: ObservatoryPatchType = _.omit(
         this.observatoryForm.value,
-        'id'
+        'id',
+        'translations'
       );
+      patch.translations = this.formService.createTranslationsObject(this.observatoryForm.value,this.availableLang,FormConstants.mandatoryFieldsObservatory);
+      console.log("patch", patch)
       this.observatoryService.patch(this.id_observatory, patch).subscribe(
         (res) => {
-          this.toastr.success('Observatoire mis à jour', '', {
+          this.toastr.success('INFO_MESSAGE.SUCCESS_UPDATED_OBSERVATORY', '', {
             positionClass: 'toast-bottom-right',
           });
           resolve();
@@ -270,6 +298,7 @@ export class ObservatoryComponent implements OnInit {
   }
 
   editForm() {
+    this.isInvalidForm = false;
     this.isEditing = !this.isEditing;
     if (!this.isEditing) {
       this.edit_btn_text = 'BUTTONS.EDIT';
@@ -335,6 +364,37 @@ export class ObservatoryComponent implements OnInit {
 
   patchForm() {
     this.observatoryForm.patchValue(this.observatory);
+    this.observatoryForm.patchValue({
+      thumbnail: this.observatory.thumbnail,
+      logo: this.observatory.logo,
+      ref: this.observatory.ref,
+      geom: this.observatory.geom,
+    })
+    const translatedValues = {
+      translations: {} // Créer une structure pour stocker les traductions
+  };
+  
+  // Parcours de toutes les langues disponibles
+  for (const lang of this.availableLang) {
+      const langId = lang.id; // Utilisation de langId directement depuis l'objet lang
+
+      // Récupération des traductions pour chaque langue
+      translatedValues.translations[langId] = {
+        title: this.translationService.getTranslation(langId, this.observatory, 'title'),
+          is_published: this.translationService.getTranslation(langId, this.observatory, 'is_published') || false
+      };
+  }
+  for (const lang of this.availableLang) {
+    const langId = lang.id;
+    const { title, is_published } = translatedValues.translations[langId];
+
+    // Mise à jour de chaque champ dans le formGroup correspondant à langId
+    this.observatoryForm.get(`translations.${langId}`).patchValue({
+      title,
+      is_published
+    });
+}
+
   }
 
   ngOnDestroy() {
@@ -344,7 +404,29 @@ export class ObservatoryComponent implements OnInit {
     }
   }
 
+  // Méthode appelée lors du changement d'onglet
+  changeTab(event: NgbTabChangeEvent): void {
+    this.currentTabLangId = event.activeId;
+  }
+  
   getTranslatedMessages(keys: string[]): Observable<string[]> {
     return combineLatest(keys.map(key => this.translate.get(key)));
   }
+  private generateErrorMessage(): string {
+    return "Veuillez vérifier tous les champs obligatoires dans chaque onglet"
+    // return this.formService.generateErrorMessage(this.observatoryForm,[], formLabels.observatory);
+ }
+
+ createPostObject(formValue, availableLang): ObservatoryPostType {
+  // Récupérez les propriétés de base
+  const post: ObservatoryPostType = {
+    ref: formValue.ref,
+    color: formValue.color,
+    geom: formValue.geom,
+    // Remplissez is_published et title par défaut (ou selon votre logique)
+    translations: this.formService.createTranslationsObject(formValue, availableLang, FormConstants.mandatoryFieldsObservatory)
+  };
+  return post;
+}
+
 }

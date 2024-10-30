@@ -35,8 +35,10 @@
         "ADVICE_THUMBNAIL":"JPG, size advised 200x200px",
         "ADVICE_LOGO":"PNG, size advised 150x150px",
         "PLACEHOLDER_ZONING":"Paste here the geometry of the observatory area in WKT format of MultiPolygon type",
-        "TOOLTIP_LOGO":"Applies to the different lists of observatories (observatory management page and on the map) as well as on the site sheet"
-    },
+        "TOOLTIP_LOGO":"Applies to the different lists of observatories (observatory management page and on the map) as well as on the site sheet",
+        "THUMBNAIL_SELECTED":"Thumbnail selected",
+        "LOGO_SELECTED":"Logo selected"
+      },
     "GALLERY_MNGMT":{
         "GALLERY": "Gallery",
         "PICTURE_CREDITS": "Picture credits",
@@ -50,10 +52,18 @@
             "CONFIRM": "Yes"
           }
     },
+    "LANG_MNGMT":{
+      "LANGUAGE_1": "Langage",
+      "LANGUAGE_2": "Language",
+      "DEFAULT_LANGUAGE": "Default language",
+      "LABEL": "Label",
+      "ID" : "ID"
+    },
     "NAV": {
         "OBSERVATORIES": "Observatory Management",
         "SITES": "Site Management",
         "GALLERY": "Gallery Management",
+        "LANGUAGES_DB": "Languages Management",
         "LANGUAGE": "Language",
         "LOGOUT": "Logout"
       },
@@ -81,7 +91,8 @@
         "LOGIN": "Login",
         "PASSWORD": "Password",
         "YES": "Yes",
-        "NO": "No"
+        "NO": "No",
+        "LOADING": "Loading"
       },
       "FIELDS":{
         "NAME": "{{ varname }} name"
@@ -121,7 +132,9 @@
       "SUCCESS_UPDATED_SITE": "Observatory point updated successfully.",
       "SUCCESS_ADDED_OBSERVATORY": "Observatory added successfully.",
       "SUCCESS_UPDATED_OBSERVATORY": "Observatory updated successfully.",
-      "GEOM_SHOULD_BE_MULTIPOLYGON": "The geometry must be a MultiPolygon."
+      "GEOM_SHOULD_BE_MULTIPOLYGON": "The geometry must be a MultiPolygon.",
+      "SUCCESS_ADDED_LANG": "Language added successfully.",
+      "SUCCESS_UPDATED_LANG": "Language updated successfully."
     },
     "ALERTS": {
       "ITEM_EXISTS": "« {{ item }} » already exists."

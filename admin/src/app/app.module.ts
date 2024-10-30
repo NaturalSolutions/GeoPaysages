@@ -33,6 +33,9 @@ import { DbConfService } from './services/dbconf.service';
 import { RichTextEditorAllModule } from '@syncfusion/ej2-angular-richtexteditor';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { DynamicTranslatePipe } from './pipes/translate-items.pipe';
+import { ListLanguagesComponent } from './list-languages/list-languages.component';
+import { FormLanguagesComponent } from './form-languages/form-languages.component';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -51,6 +54,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     GalleryComponent,
     ObservatoriesComponent,
     ObservatoryComponent,
+    ListLanguagesComponent,
+    FormLanguagesComponent,
+    DynamicTranslatePipe
   ],
   imports: [
     BrowserModule,

@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { AppConstants } from '../constants/app.constants'; // AppConstants from '../constants/app.constants';
 import { TranslateService } from '@ngx-translate/core';
+import { Conf } from '../config';
+import { Language, LanguagePatchType } from '../types';
 @Injectable({
   providedIn: 'root',
 })
@@ -11,9 +13,55 @@ export class LanguageService {
   private defaultLanguage = AppConstants.DEFAULT_LANGUAGES;
   private languages = AppConstants.LANGUAGES;
   private languageFiles = AppConstants.LANGUAGE_FILES;
+  languagesDB:Language[] = [];
+
 
   constructor(private http: HttpClient, private translate: TranslateService) {
     this.setDefaultLanguage();
+  }
+
+  getAllLanguages(): Observable<Language[]> {
+    return this.http.get<Language[]>(`${Conf.apiUrl}langs`);
+  }
+
+  getById(id) {
+    console.log("id", id)
+    return this.http.get<Language>(`${Conf.apiUrl}langs/${id}`);
+  }
+
+  post(data: Language) {
+    return this.http.post<Language>(`${Conf.apiUrl}langs`, data);
+  }
+
+  patch(id, data: LanguagePatchType) {
+    return this.http.patch<Language>(`${Conf.apiUrl}langs/${id}`, data);
+  }
+
+  // Méthode pour récupérer les langues depuis l'API et mettre à jour le BehaviorSubject
+  loadLanguagesSorted(): void {
+    this.http.get<Language[]>(`${Conf.apiUrl}langs`).subscribe(
+      (languages) => {
+        console.log("languages", languages)
+        this.languagesDB = languages.sort((a, b) => {
+          // Place la langue par défaut en premier
+          if (a.is_default && !b.is_default) return -1;
+          if (!a.is_default && b.is_default) return 1;
+          // Trie alphabétiquement les langues restantes par label
+          return a.label.localeCompare(b.label);
+        });
+    })
+    ;
+  }
+
+  // Méthode pour obtenir directement les langues sans recharger depuis l'API
+  getLanguagesDB(): Language[] {
+    return this.languagesDB;
+  }
+
+  getDefaultLanguageDB(): Language | undefined {
+    const languages = this.languagesDB
+    const defaultLanguage = languages.find((language) => language.is_default);
+    return defaultLanguage ? defaultLanguage : languages[0];
   }
 
   // Vérifie si le fichier de langue existe

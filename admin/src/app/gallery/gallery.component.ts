@@ -7,6 +7,8 @@ import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { forkJoin } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../services/language.service';
+import { Language } from '../types';
 
 @Component({
   selector: 'app-gallery',
@@ -20,15 +22,19 @@ export class GalleryComponent implements OnInit {
   selected_site;
   photos: any;
   licences: any;
+  defaultLangDB:Language;
   constructor(
     public sitesService: SitesService,
     protected router: Router,
     private toastr: ToastrService,
     private spinner: NgxSpinnerService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private languageService: LanguageService
+
   ) {}
 
   ngOnInit() {
+    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
     this.spinner.show();
     this.sitesService.getAllSites().subscribe(
       (sites) => {

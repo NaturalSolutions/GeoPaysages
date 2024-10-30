@@ -11,8 +11,9 @@ import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { ObservatoriesService } from '../services/observatories.service';
-import { ObservatoryType } from '../types';
+import { Language, ObservatoryType } from '../types';
 import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../services/language.service';
 
 type ObservatoryRowType = {
   observatory: ObservatoryType;
@@ -27,6 +28,7 @@ type ObservatoryRowType = {
 export class ObservatoriesComponent implements OnInit, OnDestroy {
   rows: ObservatoryRowType[] = [];
   itemsLoaded = false;
+  defaultLangDB: Language | undefined;
 
   constructor(
     private observatoriesSrv: ObservatoriesService,
@@ -34,10 +36,12 @@ export class ObservatoriesComponent implements OnInit, OnDestroy {
     private changeDetector: ChangeDetectorRef,
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
+    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
     this.getAll();
   }
 
@@ -46,6 +50,7 @@ export class ObservatoriesComponent implements OnInit, OnDestroy {
     this.observatoriesSrv.getAll().subscribe(
       (items) => {
         _.forEach(items, (observatory) => {
+          console.log('observatory', observatory);
           observatory.logo = Conf.img_srv + '50x50/' + observatory.logo;
           this.rows.push({ observatory });
         });

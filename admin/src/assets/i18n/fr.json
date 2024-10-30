@@ -35,7 +35,9 @@
     "ADVICE_THUMBNAIL":"JPG, taille conseillée 200x200px",
     "ADVICE_LOGO":"PNG, taille conseillée 150x150px",
      "PLACEHOLDER_ZONING":"Coller ici la géométrie de la zone de l’observatoire au format WKT de type MultiPolygon",
-  "TOOLTIP_LOGO":"S’applique sur les différentes listes des observatoires (page gestion des observatoires et sur la carte) ainsi que sur la fiche des sites"
+  "TOOLTIP_LOGO":"S’applique sur les différentes listes des observatoires (page gestion des observatoires et sur la carte) ainsi que sur la fiche des sites",
+  "THUMBNAIL_SELECTED":"Vignette sélectionnée",
+  "LOGO_SELECTED":"Logo sélectionné"
     },
     "GALLERY_MNGMT":{
       "GALLERY": "Gallerie",
@@ -50,10 +52,18 @@
         "CONFIRM": "Oui"
       }
   },
+  "LANG_MNGMT":{
+    "LANGUAGE_1": "Langage",
+    "LANGUAGE_2": "Langue",
+     "DEFAULT_LANGUAGE": "Langue par défaut",
+     "LABEL": "Libellé",
+     "ID" : "Identifiant"
+},
     "NAV": {
         "OBSERVATORIES": "Gestion des observatoires",
         "SITES": "Gestion des sites d'observation",
         "GALLERY": "Gestion de la galerie photos",
+        "LANGUAGES_DB": "Gestion des langues",
         "LANGUAGE": "Langue"
       },
       "LANGUAGES": {
@@ -80,7 +90,8 @@
       "LOGIN": "Identifiant",
       "PASSWORD": "Mot de passe",
       "YES": "Oui",
-      "NO": "Non"
+      "NO": "Non",
+      "LOADING": "Chargement"
     },
     "FIELDS":{
       "NAME": "Nom {{article}} {{ varname }}"
@@ -120,7 +131,9 @@
   "SUCCESS_UPDATED_SITE":"Point d'observation mis à jour avec succès",
   "SUCCESS_ADDED_OBSERVATORY": "Observatoire ajouté avec succès",
   "SUCCESS_UPDATED_OBSERVATORY": "Observatoire mis à jour avec succès",
-  "GEOM_SHOULD_BE_MULTIPOLYGON": "La geometrie doit être un Multipolygon"
+  "GEOM_SHOULD_BE_MULTIPOLYGON": "La geometrie doit être un Multipolygon",
+  "SUCCESS_ADDED_LANG": "Langue ajoutée avec succès.",
+  "SUCCESS_UPDATED_LANG": "Langue mise à jour avec succès."
  },
  "ALERTS":{
   "ITEM_EXISTS":"« {{ item }} » existe déjà"

@@ -17,11 +17,37 @@ export type ObservatoryPostType = Pick<
   ObservatoryType,
   'ref' | 'color' | 'geom'
 > & {
-  is_published: boolean; // Il semble que is_published doive être pris à partir des traductions
-  title: string; // Title doit également provenir de translations, mais le type a besoin de clarification
+  is_published?: boolean;
+  title?: string;
+  translations?: { 
+    lang_id: string;
+    is_published: boolean;
+    title: string;
+  }[];
 };
-export type ObservatoryPatchType = Partial<ObservatoryPostType>;
+
+// Type pour le patch qui est une version partielle de ObservatoryPostType
+export type ObservatoryPatchType = Partial<ObservatoryPostType> & {
+  translations?: { 
+    lang_id: string;
+    is_published: boolean;
+    title: string;
+  }[];
+};
 
 export type ObservatoryPatchImageType = {
   filename: string;
 };
+
+export interface Language {
+  id: string;
+  label: string;
+  is_default: boolean;
+  is_published: boolean;
+}
+
+export type LanguagePatchType = {
+  label: string;
+  is_default: boolean;
+  is_published: boolean;
+}

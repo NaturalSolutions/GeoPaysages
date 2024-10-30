@@ -1,5 +1,5 @@
 <ngx-spinner size="medium" type="ball-spin">
-  <p style="color: white">Loading...</p>
+  <p style="color: white">{{'COMMONS.LOADING' | translate}}...</p>
 </ngx-spinner>
 <app-header></app-header>
 <div class="container-fluid">
@@ -42,12 +42,12 @@
             width="320"
           >
             <ng-template let-row="row" ngx-datatable-cell-template>
-              {{ row.observatory.title }}
+              {{ row.observatory | dynamicTranslate:defaultLangDB.id:'getTranslation':'title'}}
             </ng-template>
           </ngx-datatable-column>
-          <ngx-datatable-column prop="observatory.is_published" name="{{ 'COMMONS.IS_PUBLISHED' | translate}}">
+          <ngx-datatable-column prop="observatory.is_published" name="{{ 'COMMONS.IS_PUBLISHED' | translate}} ({{defaultLangDB.label}})">
             <ng-template let-row="row" ngx-datatable-cell-template>
-                <div *ngIf="row.observatory.is_published; else elseBlock"><span class="icon-checkmark text-success"></span></div>
+                <div *ngIf="row.observatory | dynamicTranslate:defaultLangDB.id:'getTranslation':'is_published'; else elseBlock"><span class="icon-checkmark text-success"></span></div>
                 <ng-template #elseBlock><span class="icon-cross text-danger"></span></ng-template>
             </ng-template>
           </ngx-datatable-column>

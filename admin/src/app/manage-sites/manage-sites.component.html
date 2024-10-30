@@ -1,5 +1,5 @@
 <ngx-spinner size="medium" type="ball-spin">
-  <p style="color: white"> Loading... </p>
+  <p style="color: white"> {{ 'COMMONS.LOADING' | translate}}... </p>
 </ngx-spinner>
 <app-header></app-header>
 <div class="container-fluid">
@@ -35,7 +35,7 @@
               {{row.code_city_site}}
             </ng-template>
           </ngx-datatable-column>
-          <ngx-datatable-column prop="publish_site" name="{{ 'COMMONS.IS_PUBLISHED' | translate}}">
+          <ngx-datatable-column prop="publish_site" name="{{ 'COMMONS.IS_PUBLISHED' | translate}} ({{defaultLangDB.label}})">
             <ng-template let-row="row" ngx-datatable-cell-template>
               <div *ngIf="row.publish_site; else elseBlock"><span class="icon-checkmark text-success"></span></div>
               <ng-template #elseBlock><span class="icon-cross text-danger"></span></ng-template>

@@ -5,109 +5,115 @@
     <div class="col-6 col-table">
       <div *ngIf="loadForm" class="site-block">
         <form [formGroup]="siteForm" (submit)="submitSite(siteForm)" disabled>
-
-        
-      <ngb-tabset class="tab-container" (tabChange)="changeTab($event)">
-        <ngb-tab *ngFor="let lang of availableLang" [title]="lang.langLabel" class="tab-item">
-          <ng-template ngbTabContent>
-            <div  class="card custom-card">
-            <div class="tab-content">
-                  <div class="inner-checkbox form-group">
-                    <div class="label">{{ 'ACTIONS.PUBLISH_DEFAULT' | translate }}:</div>
-                    <label class="switch">
-                      <input formControlName="publish_site_{{ lang.langId }}" type="checkbox" class="success form-control"/>
-                      <span [ngClass]="{'slider-disabled': !this.edit_btn}" class="slider round"></span>
-                    </label>
-                  </div>
-
-                  <!-- Champs traductibles -->
-                  <div class="form-item">
-                    <label class="label" for="site-name">{{ 'FIELDS.NAME' | translate: { article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) } }}*</label>
-                    <input InputFeedBack type="text" formControlName="name_site_{{ lang.langId }}" class="form-control" placeholder="{{ 'FIELDS.NAME' | translate: { article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) } }}"  [value]="getTranslation(lang.langId, site)?.name_site"   />
-                    <app-form-error controlName="name_site_{{ lang.langId }}" errorKey="required"></app-form-error>
-                  </div>
-                  <div class="form-item">
-                    <label class="label" for="desc">{{'SITE_MNGMT.DESCRIPTION' | translate}}</label>
-                    <div id="descRTE">
-                      <ejs-richtexteditor #defaultRTE id='desc' [toolbarSettings]='tools' InputFeedBack formControlName="desc_site_{{ lang.langId }}" placeholder="{{'SITE_MNGMT.PLACEHOLDER_DESC' | translate}}">
-                        <ng-template #descRTE></ng-template>
-                      </ejs-richtexteditor>
+          <ngb-tabset class="tab-container" (tabChange)="changeTab($event)" formGroupName="translations">
+            <ngb-tab *ngFor="let lang of availableLang; let i = index" [id]="lang.id" [title]="lang.label" class="tab-item"  formGroupName="{{ lang.id }}">
+              <ng-template ngbTabContent>
+                <div class="card custom-card">
+                  <div class="tab-content">
+                    <div class="inner-checkbox form-group">
+                      <div class="label">{{ 'ACTIONS.PUBLISH_DEFAULT' | translate }}:</div>
+                      <label class="switch">
+                        <input formControlName="publish_site" type="checkbox" class="success form-control" />
+                        <span [ngClass]="{'slider-disabled': !this.edit_btn}" class="slider round"></span>
+                      </label>
                     </div>
-                    <app-form-error controlName="desc_site_{{ lang.langId }}" errorKey="required"></app-form-error>
-                  </div>
-                  <div class="form-item">
-                    <label class="label" for="legend_site">{{'SITE_MNGMT.LEGEND' | translate}}*</label>
-                    <textarea InputFeedBack class="form-control" formControlName="legend_site_{{ lang.langId }}" placeholder="{{'SITE_MNGMT.PLACEHOLDER_LEGEND' | translate}}" rows="2" [value]="getTranslation(lang.langId, site)?.legend_site" ></textarea>
-                    <app-form-error controlName="legend_site_{{ lang.langId }}" errorKey="required"></app-form-error>
-                  </div>
-                  <div class="form-item">
-                    <label class="label" for="testim">{{'SITE_MNGMT.TESTIMONIALS' | translate}}</label>
-                    <div id="testimRTE">
-                      <ejs-richtexteditor #defaultRTE id='testim' [toolbarSettings]='tools' InputFeedBack formControlName="testim_site_{{ lang.langId }}" placeholder="{{'SITE_MNGMT.PLACEHOLDER_TESTIMONIALS' | translate}}">
-                        <ng-template #testimRTE></ng-template>
-                      </ejs-richtexteditor>
+          
+                    <!-- Champs traductibles -->
+                    <div class="form-item">
+                      <label class="label" for="site-name">{{ 'FIELDS.NAME' | translate: { article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) } }}*</label>
+                      <input InputFeedBack type="text"  formControlName="name_site" class="form-control"
+                        placeholder="{{ 'FIELDS.NAME' | translate: { article: ('ARTICLES.DU' | translate), varname: ('SITE_MNGMT.SITE' | translate) } }}" />
+                      <app-form-error controlName="name_site" errorKey="required"></app-form-error>
                     </div>
-                    <app-form-error controlName="testim_site_{{ lang.langId }}" errorKey="required"></app-form-error>
+          
+                    <div class="form-item">
+                      <label class="label" for="desc">{{ 'SITE_MNGMT.DESCRIPTION' | translate }}</label>
+                      <div id="descRTE">
+                        <ejs-richtexteditor #defaultRTE id='desc' [toolbarSettings]='tools' InputFeedBack  
+                          placeholder="{{ 'SITE_MNGMT.PLACEHOLDER_DESC' | translate }}"
+                          formControlName="desc_site">
+                          <ng-template #descRTE></ng-template>
+                        </ejs-richtexteditor>
+                      </div>
+                      <app-form-error controlName="desc_site" errorKey="required"></app-form-error>
+                    </div>
+          
+                    <div class="form-item">
+                      <label class="label" for="legend_site">{{ 'SITE_MNGMT.LEGEND' | translate }}*</label>
+                      <textarea InputFeedBack class="form-control" formControlName="legend_site" 
+                        placeholder="{{ 'SITE_MNGMT.PLACEHOLDER_LEGEND' | translate }}" rows="2"></textarea>
+                      <app-form-error controlName="legend_site" errorKey="required"></app-form-error>
+                    </div>
+          
+                    <div class="form-item">
+                      <label class="label" for="testim">{{ 'SITE_MNGMT.TESTIMONIALS' | translate }}</label>
+                      <div id="testimRTE">
+                        <ejs-richtexteditor #defaultRTE id='testim' [toolbarSettings]='tools' InputFeedBack formControlName="testim_site" 
+                          placeholder="{{ 'SITE_MNGMT.PLACEHOLDER_TESTIMONIALS' | translate }}">
+                          <ng-template #testimRTE></ng-template>
+                        </ejs-richtexteditor>
+                      </div>
+                      <app-form-error controlName="testim_site" errorKey="required"></app-form-error>
+                    </div>
+          
                   </div>
-
                 </div>
-            </div>
-        </ng-template>
-      </ngb-tab>
-    </ngb-tabset>
+              </ng-template>
+            </ngb-tab>
+          </ngb-tabset>
+          
 
 
-            <!-- Champs traductibles pour les observatoires et communes -->
             <div class="row form-item">
               <div class="col">
-                <label class="label" for="id_observatory">{{ defaultLang.langLabel }} - {{'SITE_MNGMT.OBSERVATORY' | translate}}*</label>
+                <label class="label" for="id_observatory">{{'SITE_MNGMT.OBSERVATORY' | translate}}*</label>
                 <select InputFeedBack formControlName="id_observatory" id="id_observatory" class="form-control">
                   <option class="select-placeholder" value="">---</option>
                   <option *ngFor="let observatory of observatories" [ngValue]="observatory.id">
-                    {{ observatory.ref }} <!-- Remplacez par la traduction si nécessaire -->
+                    {{ observatory.ref }} 
                   </option>
                 </select>
                 <app-form-error controlName="id_observatory" errorKey="required"></app-form-error>
               </div>
               <div class="col">
-                <!-- TODO: enlever le lien à la lang dans le formControlName et le controlName -->
-                <label class="label" for="city-code">{{ defaultLang.langLabel }} - {{'SITE_MNGMT.CITY' | translate}}*</label>
-                <select InputFeedBack formControlName="code_city_site_{{ defaultLang.langId }}" id="city-code" class="form-control">
+    
+                <label class="label" for="city-code">{{'SITE_MNGMT.CITY' | translate}}*</label>
+                <select InputFeedBack formControlName="code_city_site" id="city-code" class="form-control">
                   <option class="select-placeholder" value="">---</option>
                   <option *ngFor="let commune of communes" [ngValue]="commune.code_commune">
-                    {{ getTranslationCity(defaultLang.langId, commune) }} <!-- Remplacez par la traduction si nécessaire -->
+                    {{ commune | dynamicTranslate:defaultLang.id:'getTranslation':'nom_commune' }} 
                   </option>
                 </select>
-                <app-form-error controlName="code_city_site_{{ defaultLang.langId }}" errorKey="required"></app-form-error>
+                <app-form-error controlName="code_city_site" errorKey="required"></app-form-error>
               </div>
             </div>
 
             <!-- Champs traductibles pour les thèmes et sous-thèmes -->
             <div class="row form-item">
               <div class="col">
-                <label class="label" for="theme">{{ defaultLang.langLabel }} - {{'SITE_MNGMT.THEME' | translate}}*</label>
+                <label class="label" for="theme">{{'SITE_MNGMT.THEME' | translate}}*</label>
                 <ng-select InputFeedBack formControlName="id_theme" [items]="themes" [multiple]="true"
                   [closeOnSelect]="false" bindValue="id_theme" placeholder="{{ 'ACTIONS.SELECT' | translate: {article:('ARTICLES.LE' | translate), varname: ('SITE_MNGMT.THEME' | translate) }  }}">
                   <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                    <input id="item-{{ index }}" [checked]="item$.selected" type="checkbox" />
-                    {{ getTranslationTheme(defaultLang.langId, item) }} <!-- Remplacez par la traduction si nécessaire -->
+                    <input id="item-{{ index }}-theme" [checked]="item$.selected" type="checkbox" />
+                    {{ item | dynamicTranslate:defaultLang.id:'getTranslation':'name_theme' }} 
                   </ng-template>
                   <ng-template ng-label-tmp let-item="item">
-                    {{ getTranslationTheme(defaultLang.langId, item) }} <!-- Affichage de la traduction dans le label -->
+                    {{ item | dynamicTranslate:defaultLang.id:'getTranslation':'name_theme' }} <!-- Affichage de la traduction dans le label -->
                   </ng-template>
                 </ng-select>
                 <app-form-error controlName="id_theme" errorKey="required"></app-form-error>
               </div>
               <div class="col">
-                <label class="label" for="sousTheme">{{  defaultLang.langLabel }} - {{'SITE_MNGMT.SUBTOPIC' | translate}}*</label>
+                <label class="label" for="sousTheme">{{'SITE_MNGMT.SUBTOPIC' | translate}}*</label>
                 <ng-select InputFeedBack formControlName="id_stheme" [items]="selectedSubthemes" [multiple]="true"
                   [closeOnSelect]="false" bindValue="id_stheme" placeholder="{{ 'ACTIONS.SELECT' | translate: {article:('ARTICLES.LE' | translate), varname: ('SITE_MNGMT.SUBTOPIC' | translate) }  }}">
                   <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
                     <input id="item-{{ index }}-subtheme" [checked]="item$.selected" type="checkbox" />
-                    {{ getTranslationSubTheme(defaultLang.langId, item) }} <!-- Remplacez par la traduction si nécessaire -->
+                    {{ item | dynamicTranslate:defaultLang.id:'getTranslation':'name_stheme' }} 
                   </ng-template>
                   <ng-template ng-label-tmp let-item="item">
-                    {{ getTranslationSubTheme(defaultLang.langId, item) }} <!-- Affichage de la traduction dans le label -->
+                    {{ item | dynamicTranslate:defaultLang.id:'getTranslation':'name_stheme' }} <!-- Affichage de la traduction dans le label -->
                   </ng-template>
                 </ng-select>
                 <app-form-error controlName="id_stheme" errorKey="required"></app-form-error>
@@ -115,11 +121,11 @@
             </div>
             <div class="row form-item">
               <div class="col">
-                <label class="label" for="main-theme-id">{{  defaultLang.langLabel }} - {{'SITE_MNGMT.MAIN_THEME' | translate}}</label>
+                <label class="label" for="main-theme-id">{{'SITE_MNGMT.MAIN_THEME' | translate}}</label>
                 <select InputFeedBack formControlName="main_theme_id" id="main-theme-id" class="form-control">
                   <option class="select-placeholder" value="">---</option>
-                  <option *ngFor="let theme of themes" [ngValue]="theme.id_theme">
-                    {{ getTranslationTheme(defaultLang.langId, theme) }}
+                  <option *ngFor="let theme of themes" [ngValue]="theme | dynamicTranslate:defaultLang.id:'getTranslation':'id_theme'">
+                    {{ theme | dynamicTranslate:defaultLang.id:'getTranslation':'name_theme' }}
                   </option>
                 </select>
                 <app-form-error controlName="main_theme_id" errorKey="required"></app-form-error>
@@ -185,6 +191,9 @@
               {{ 'BUTTONS.BACK_TO_LIST' | translate }}
             </button>
           </div>
+          <div *ngIf="errorMessage" class="error-message-container">
+            <p class="error-message" [innerText]="errorMessage"></p>
+           </div>
         </form>
       </div>
 
