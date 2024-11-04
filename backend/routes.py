@@ -17,39 +17,9 @@ photo_schema = models.TPhotoSchema(many=True)
 themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
 
 
-def localeGuard(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        locale = request.view_args.get("locale")
-        if not utils.isMultiLangs() and locale is not None:
-            return redirect(url_for(request.endpoint))
-        langs = models.Lang.query.filter_by(is_published=True).all()
-        lang_ids = [lang.id for lang in langs]
-        defaultLang = next((lang for lang in langs if lang.is_default), None)
-        if utils.isMultiLangs() and locale is not None and locale not in lang_ids:
-            view_args = dict(**request.view_args)
-            view_args.pop("locale", None)
-            return redirect(
-                url_for(request.endpoint, locale=defaultLang.id, **view_args)
-            )
-
-        if utils.isMultiLangs() and locale is None:
-            userLang = request.accept_languages[0][0].split("-")[0]
-            if userLang in lang_ids:
-                return redirect(
-                    url_for(request.endpoint, locale=userLang, **request.view_args)
-                )
-            return redirect(
-                url_for(request.endpoint, locale=defaultLang.id, **request.view_args)
-            )
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
 @main.route("/")
 @main.route("/<string:locale>/")
-@localeGuard
+@utils.localeGuard
 def home(locale=None):
     locale = utils.getLocale()
     site_schema = models.TSiteSchema(many=True, locale=locale)
@@ -198,7 +168,7 @@ def gallery(locale=None):
 
 @main.route("/sites/<int:id_site>/")
 @main.route("/<string:locale>/sites/<int:id_site>/")
-@localeGuard
+@utils.localeGuard
 def site(id_site, locale=None):
     site_schema = models.TSiteSchema(many=True, locale=locale)
     communes_schema = models.CommunesSchema(many=True, locale=locale)
@@ -289,7 +259,7 @@ def site_photos_last(id_site):
 
 @main.route("/sites/")
 @main.route("/<string:locale>/sites/")
-@localeGuard
+@utils.localeGuard
 def sites(locale=None):
     data = utils.getFiltersData()
 
@@ -303,7 +273,7 @@ def sites(locale=None):
 
 @main.route("/legal-notices/")
 @main.route("/<string:locale>/legal-notices/")
-@localeGuard
+@utils.localeGuard
 def legal_notices(locale=None):
 
     tpl = utils.getCustomTpl("legal_notices")

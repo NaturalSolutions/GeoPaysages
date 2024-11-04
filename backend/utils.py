@@ -1,5 +1,6 @@
 from base64 import urlsafe_b64encode
-from flask import url_for, request
+from flask import url_for, request, redirect
+from functools import wraps
 import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
@@ -18,10 +19,40 @@ photo_schema = models.TPhotoSchema(many=True)
 themes_sthemes_schema = models.CorSthemeThemeSchema(many=True)
 
 
+def localeGuard(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        locale = request.view_args.get("locale")
+        if not isMultiLangs() and locale is not None:
+            return redirect(url_for(request.endpoint))
+        langs = models.Lang.query.filter_by(is_published=True).all()
+        lang_ids = [lang.id for lang in langs]
+        defaultLang = next((lang for lang in langs if lang.is_default), None)
+        if isMultiLangs() and locale is not None and locale not in lang_ids:
+            view_args = dict(**request.view_args)
+            view_args.pop("locale", None)
+            return redirect(
+                url_for(request.endpoint, locale=defaultLang.id, **view_args)
+            )
+
+        if isMultiLangs() and locale is None:
+            userLang = request.accept_languages[0][0].split("-")[0]
+            if userLang in lang_ids:
+                return redirect(
+                    url_for(request.endpoint, locale=userLang, **request.view_args)
+                )
+            return redirect(
+                url_for(request.endpoint, locale=defaultLang.id, **request.view_args)
+            )
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def getLocale():
     locale = request.view_args.get("locale")
     if locale is None:
-        #TODO
+        # TODO
         lang = models.Lang.query.filter_by(is_default=True).first()
         locale = lang.id
     return locale
@@ -31,11 +62,13 @@ def isMultiLangs():
     count = models.Lang.query.filter_by(is_published=True).count()
     return count > 1
 
+
 def getLocalizedLink(link):
     is_multi_langs = isMultiLangs()
     if not is_multi_langs:
         return link
     return f"/{getLocale()}{link}"
+
 
 def getCustomTpl(name):
     tpl_local = f"custom/{name}_{getLocale()}.jinja"
