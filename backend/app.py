@@ -50,7 +50,6 @@ class ReverseProxied(object):
 
 
 app = Flask(__name__)
-app.config["BABEL_DEFAULT_LOCALE"] = "fr"
 app.config["BABEL_TRANSLATION_DIRECTORIES"] = config.BABEL_TRANSLATION_DIRECTORIES
 babel = Babel(app)
 # app.wsgi_app = ReverseProxied(app.wsgi_app)
@@ -59,7 +58,14 @@ CORS(app, supports_credentials=True)
 
 @babel.localeselector
 def determine_locale():
-    return utils.getLocale()
+    locale = utils.getLocale()
+    translation_exists = locale in [
+        str(translation) for translation in babel.list_translations()
+    ]
+    if not translation_exists:
+        default_lang = utils.getDefaultLang()
+        locale = default_lang.id
+    return locale
 
 
 app.register_blueprint(main_blueprint)

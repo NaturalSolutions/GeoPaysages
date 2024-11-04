@@ -49,12 +49,16 @@ def localeGuard(f):
     return decorated_function
 
 
+def getDefaultLang():
+    return models.Lang.query.filter_by(is_default=True).first()
+
+
 def getLocale():
     locale = request.view_args.get("locale")
     if locale is None:
         # TODO
-        lang = models.Lang.query.filter_by(is_default=True).first()
-        locale = lang.id
+        default_lang = getDefaultLang()
+        locale = default_lang.id
     return locale
 
 
