@@ -630,6 +630,16 @@ def returnAllLangs():
     return jsonify(langs), 200
 
 
+@api.route("/api/langs/<string:id>", methods=["GET"])
+def get_one_lang(id):
+    lang_query = models.Lang.query.filter_by(id=id).first()
+    if lang_query is None:
+        return jsonify({"error": "Lang not found"}), 404
+
+    lang = models.LangSchema().dump(lang_query)
+    return jsonify(lang), 200
+
+
 @api.route("/api/langs", methods=["POST"])
 @fnauth.check_auth(6)
 def add_langs():
@@ -639,7 +649,7 @@ def add_langs():
         langs = {t.id: t for t in get_all_existing_langs}
         if lang["id"] in langs:
             return jsonify({"error": "lang already exists"}), 409
-        
+
         lang_obj = models.Lang(
             id=lang["id"],
             label=lang["label"],
@@ -649,12 +659,11 @@ def add_langs():
         db.session.add(lang_obj)
 
         db.session.commit()
+        return jsonify({"id": lang_obj.id}), 201
 
     except Exception as exception:
         db.session.rollback()
         return jsonify({"error": str(exception)}), 400
-
-    return jsonify("langs added")
 
 
 @api.route("/api/langs/<string:id>", methods=["PATCH"])
@@ -662,6 +671,25 @@ def add_langs():
 def update_lang(id):
     data = request.get_json()
     try:
+        # Vérifiez si la langue mise à jour a is_default à True
+        if "is_default" in data and data["is_default"] is True:
+            # Vérifiez s'il y a d'autres langues qui sont déjà marquées comme is_default
+            existing_default = models.Lang.query.filter(
+                models.Lang.is_default.is_(True)
+            ).all()
+
+            # Si aucune langue n'est par défaut, cela signifie que c'est la première langue par défaut
+            if not existing_default:
+                # Permettre la mise à jour car c'est la première langue par défaut
+                pass
+            else:
+                # Si c'est une mise à jour d'une langue différente, réinitialisez is_default pour les autres
+                if all(lang.id != id for lang in existing_default):
+                    # Mettez is_default à False pour toutes les autres langues
+                    models.Lang.query.filter(models.Lang.id != id).update(
+                        {"is_default": False}
+                    )
+
         models.Lang.query.filter_by(id=id).update(data)
         db.session.commit()
     except Exception as exception:

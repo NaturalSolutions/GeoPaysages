@@ -13,7 +13,7 @@ import sqlalchemy as sa
 # revision identifiers, used by Alembic.
 revision = "ffd0e83f3c4c"
 down_revision = None
-branch_labels = None
+branch_labels = ("geopaysages",)
 depends_on = None
 
 

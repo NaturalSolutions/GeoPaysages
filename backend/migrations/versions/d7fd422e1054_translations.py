@@ -341,7 +341,6 @@ def downgrade():
     """
         )
     )
-
     op.drop_table("t_site_translation", schema="geopaysages")
     op.drop_table("t_observatory_translation", schema="geopaysages")
     op.drop_table("dico_theme_translation", schema="geopaysages")

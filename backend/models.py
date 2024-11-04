@@ -27,7 +27,6 @@ class Lang(db.Model):
     label = db.Column(db.String)
     is_published = db.Column(db.Boolean)
     is_default = db.Column(db.Boolean, default=False)
-
     observatory_translations = db.relationship(
         "ObservatoryTranslation", back_populates="lang"
     )
