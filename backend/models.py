@@ -21,16 +21,13 @@ class Conf(db.Model):
 
 class Lang(db.Model):
     __tablename__ = "lang"
-    __table_args__ = ({"schema": "geopaysages"},)
+    __table_args__ = {"schema": "geopaysages"}
 
     id = db.Column(db.String, primary_key=True)
     label = db.Column(db.String)
     is_published = db.Column(db.Boolean)
     is_default = db.Column(db.Boolean, default=False)
-    __table_args__ = (
-        db.UniqueConstraint("is_default", name="uq_default_lang"),
-        {"schema": "geopaysages"},
-    )
+
     observatory_translations = db.relationship(
         "ObservatoryTranslation", back_populates="lang"
     )
@@ -84,6 +81,7 @@ class ObservatoryTranslation(db.Model):
     lang = db.relationship(
         "Lang", primaryjoin="ObservatoryTranslation.lang_id == Lang.id"
     )
+
 
 class TSite(db.Model):
     __tablename__ = "t_site"
@@ -383,7 +381,7 @@ class GeographySerializationField(fields.String):
 def get_translated_data(self, data):
     if not self.lang_id:
         return data
-    
+
     translation = None
     for data_translation in data["translations"]:
         if data_translation["lang_id"] == self.lang_id:
@@ -552,7 +550,7 @@ class ObservatorySchemaFull(ma.SQLAlchemyAutoSchema):
     translations = ma.Nested(ObservatoryTranslationSchema, many=True)
     comparator = EnumField(ComparatorEnum, by_value=True)
     geom = fields.Method("geomSerialize")
-    
+
     translatable_fields = ObservatoryTranslationSchema.Meta.fields
 
     def __init__(self, *args, **kwargs):
@@ -562,7 +560,7 @@ class ObservatorySchemaFull(ma.SQLAlchemyAutoSchema):
     @post_dump
     def translate_fields(self, data, **kwargs):
         return get_translated_data(self, data)
-    
+
     @staticmethod
     def geomSerialize(obj):
         if obj.geom is None:
@@ -574,7 +572,7 @@ class ObservatorySchemaFull(ma.SQLAlchemyAutoSchema):
 class ObservatorySchemaLite(ma.SQLAlchemyAutoSchema):
     translations = ma.Nested(ObservatoryTranslationSchema, many=True)
     comparator = EnumField(ComparatorEnum, by_value=False)
-    geom = fields.Method("geomSerialize")   
+    geom = fields.Method("geomSerialize")
 
     translatable_fields = ObservatoryTranslationSchema.Meta.fields
 
@@ -594,7 +592,7 @@ class ObservatorySchemaLite(ma.SQLAlchemyAutoSchema):
         p = to_shape(obj.geom)
         s = p.simplify(0.001, preserve_topology=True)
         return s.wkt
-    
+
     class Meta:
         model = Observatory
         include_relationships = True
