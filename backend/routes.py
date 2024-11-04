@@ -185,7 +185,7 @@ def home(locale=None):
 
 @main.route("/gallery/")
 @main.route("/<string:locale>/gallery/")
-def gallery(locale):
+def gallery(locale=None):
     data = utils.getFiltersData()
 
     return render_template(
@@ -199,7 +199,7 @@ def gallery(locale):
 @main.route("/sites/<int:id_site>/")
 @main.route("/<string:locale>/sites/<int:id_site>/")
 @localeGuard
-def site(id_site, locale):
+def site(id_site, locale=None):
     site_schema = models.TSiteSchema(many=True, locale=locale)
     communes_schema = models.CommunesSchema(many=True, locale=locale)
     get_site_by_id = utils.getLocalizedSitesQuery().filter(
@@ -304,7 +304,7 @@ def sites(locale=None):
 @main.route("/legal-notices/")
 @main.route("/<string:locale>/legal-notices/")
 @localeGuard
-def legal_notices(locale):
+def legal_notices(locale=None):
 
     tpl = utils.getCustomTpl("legal_notices")
 
