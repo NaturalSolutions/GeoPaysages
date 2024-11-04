@@ -86,6 +86,8 @@ def inject_to_tpl():
         dbconf=utils.getDbConf(),
         debug=app.debug,
         locale=utils.getLocale(),
+        isMultiLangs=utils.isMultiLangs(),
+        langs=utils.getLangs(),
         isMultiObservatories=utils.isMultiObservatories,
         getThumborUrl=utils.getThumborUrl,
         getCustomTpl=utils.getCustomTpl,

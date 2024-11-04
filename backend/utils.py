@@ -49,6 +49,10 @@ def localeGuard(f):
     return decorated_function
 
 
+def getLangs():
+    return models.Lang.query.filter_by(is_published=True).order_by(models.Lang.label).all()
+
+
 def getDefaultLang():
     return models.Lang.query.filter_by(is_default=True).first()
 
