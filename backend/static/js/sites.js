@@ -341,7 +341,9 @@ geopsg.initSites = (options) => {
           }
           imgUrl = `/api/thumbor/presets/200x150/${site.photo}`;
           marker.bindPopup(
-            '<a href="/sites/' +
+            '<a href="' +
+              options.siteUrlPrefixe +
+              '/' +
               site.id_site +
               '" style="text-decoration: none; color: black;"><div class="img" style="background-image: url(\'' +
               imgUrl +
@@ -360,7 +362,7 @@ geopsg.initSites = (options) => {
           });
           marker.on('click', (e) => {
             if (window.innerWidth >= 768) {
-              window.location.href = `/sites/${site.id_site}`;
+              window.location.href = `${options.siteUrlPrefixe}/${site.id_site}`;
             } else {
               this.onSiteMousover(site);
             }
@@ -411,7 +413,7 @@ geopsg.initSites = (options) => {
       },
       onSiteClick(site) {
         if (window.innerWidth >= 768) {
-          window.location.href = `/sites/${site.id_site}`;
+          window.location.href = `${options.siteUrlPrefixe}/${site.id_site}`;
         }
       },
       async onShareClick() {
