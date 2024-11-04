@@ -118,9 +118,10 @@ geopsg.initSites = (options) => {
           });
         }
         let mapLayers = layersConf.map((layer) => {
+          const fct = layer.isWMS ? L.tileLayer.wms : L.tileLayer;
           return {
             label: layer.label,
-            layer: L.tileLayer(layer.url, layer.options),
+            layer: fct(layer.url, layer.options),
           };
         });
 

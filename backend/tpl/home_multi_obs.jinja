@@ -82,7 +82,8 @@
       geopsg.initHomeMulti({
         observatories: {{observatories | tojson}},
         patchwork_options: {{patchwork_options | tojson}},
-        sites: {{sites | tojson}}
+        sites: {{sites | tojson}},
+        dbconf: {{ dbconf | tojson }},
       })
     }
   }
