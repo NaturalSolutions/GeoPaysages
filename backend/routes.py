@@ -266,7 +266,6 @@ def sites(locale=None):
     return render_template(
         "sites.jinja",
         filters=data["filters"],
-        sites=data["sites"],
         observatories=data["observatories"],
     )
 

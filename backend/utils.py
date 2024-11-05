@@ -374,6 +374,8 @@ def getFiltersData():
             )
 
     observatories = sorted(observatories, key=lambda d: d["label"])
+    for observatory in observatories:
+        observatory["sites"] = [site for site in sites if site["id_observatory"] == observatory["id"]]
 
     if len(observatories) > 1:
         filters.insert(
@@ -385,4 +387,4 @@ def getFiltersData():
             },
         )
 
-    return {"filters": filters, "sites": sites, "observatories": observatories}
+    return {"filters": filters, "observatories": observatories}

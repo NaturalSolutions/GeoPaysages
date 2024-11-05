@@ -54,28 +54,30 @@
           <i class="icon ion-ios-arrow-down visible-collapsed"></i>
           <i class="icon ion-ios-arrow-up hidden-collapsed"></i>
         </a>
-        <b-collapse id="app_map_list_sites_collapse" class="list-sites-collapse" :visible="isSitesListOpen">
-          <div v-if="observatories.length" class="list-observatories">
+        <b-collapse id="app_map_list_sites_collapse" class="list-sites-collapse" v-model="isSitesListOpen">
+          {% if observatories|length %}
+          
+          <div class="list-observatories">
+            {% for observatory in observatories %}
             <b-card
               no-body
-              class="m-0 rounded-0 border-0 p-2"
-              v-for="(observatory) in observatories"
-              v-bind:key="observatory.id">
+              class="m-0 rounded-0 border-0 p-2">
               <b-card-header header-tag="header" class="p-0 border-0">
                 <b-btn
                   block
                   href="#"
-                  @click="onBtnObservatoryClick(observatory)"
-                  v-b-toggle="'app_map_observatory_' + observatory.id"
+                  @click="onBtnObservatoryClick(observatories[{{ loop.index0 }}])"
                   variant="link"
                   class="rounded-0 text-left btn-observatory border-0 text-decoration-none d-flex align-items-center">
                   <div class="icon d-inline-block mr-2">
-                    <img :src="'/api/thumbor/presets/100x100/' + observatory.data.logo" />
+                    <img src="/api/thumbor/presets/100x100/{{ observatory.data.logo }}" />
                   </div>
                   <div class="d-inline-block align-middle">
-                    <span class="d-block text-capitalize" v-html="observatory.label"></span>
-                    <small class="d-block text-lowercase text-black-50" v-if="observatory.selectedSites && observatory.selectedSites.length">
-                      <span v-html="observatory.selectedSites.length"></span> {{_('sites.observation_points.item')}}
+                    <span class="d-block text-capitalize">{{ observatory.label }}</span>
+                    <small class="d-block text-lowercase text-black-50">
+                      <span  v-html="!observatories[{{ loop.index0 }}].selectedSites ? 0 : observatories[{{ loop.index0 }}].selectedSites.length"></span> 
+
+                      {{_('sites.observation_points.item')}}
                     </small>
                   </div>
                   <i class="ion-ios-arrow-down visible-collapsed ml-auto justify-content-center align-items-center"></i>
@@ -83,29 +85,33 @@
                 </b-btn>
               </b-card-header>
               <b-collapse
-                :id="'app_map_observatory_' + observatory.id"
-                v-model="observatory.isOpen">
+                v-model="observatories[{{ loop.index0 }}].isOpen">
                 <b-card-body class="p-0" v-bind:class="{'pl-5': isMultiObservatories}">
-                  <b-button-group v-if="observatory.selectedSites && observatory.selectedSites.length" vertical class="w-100">
-                    <a v-for="site in observatory.selectedSites"
-                      class="btn btn-sm btn-block text-left btn-site rounded-0 btn-no-uppercase"
-                      @mouseenter="onSiteMousover(site)"
-                      @mouseleave="onSiteMouseout(site)"
-                      @click="onSiteClick(site)">
-                      <span class="d-block font-weight-bold" v-html="site.name_site"></span>
-                      <span class="d-block text-black-50" v-html="site.ville.label"></span>
-                      {% if dbconf.show_site_ref: %}
-                      <span class="d-block text-black-50"
-                            v-if="site.ref_site"
-                            v-html="'(réf. : ' + site.ref_site + ')'"></span>
+                  <b-button-group 
+                    v-if="observatories[{{ loop.index0 }}].selectedSites && observatories[{{ loop.index0 }}].selectedSites.length"
+                    vertical class="w-100">
+                    {% for site in observatory.sites %}
+                    <a class="btn btn-sm btn-block text-left btn-site rounded-0 btn-no-uppercase"
+                      @mouseenter="onSiteMousover({{ site.id_site }})"
+                      @mouseleave="onSiteMouseout({{ site.id_site }})"
+                      @click="onSiteClick($event)"
+                      href="{{getLocalizedLink('/sites/' + (site.id_site|tojson) )}}"
+                      >
+                      <span class="d-block font-weight-bold">{{ site.name_site }}</span>
+                      <span class="d-block text-black-50">{{ site.ville.label }}</span>
+                      {% if dbconf.show_site_ref and site.ref_site: %}
+                      <span class="d-block text-black-50">(réf. : {{ site.ref_site }})</span>
                       {% endif %}
                     </a>
+                    {% endfor %}
                     <hr class="w-100 m-1"/>
                   </b-button-group>
                 </b-card-body>
               </b-collapse>
             </b-card>
+            {% endfor %}
           </div>
+          {% endif %}
         </b-collapse>
       </div>
       <div class="maptools-top-right">
@@ -160,7 +166,6 @@
     if (document.readyState == 'complete') {
       geopsg.initSites({
         observatories: {{observatories | tojson}},
-        sites: {{sites | tojson}},
         filters: {{filters | tojson}},
         dbconf: {{dbconf | tojson}},
         siteUrlPrefixe: "{{getLocalizedLink('/sites')}}",
