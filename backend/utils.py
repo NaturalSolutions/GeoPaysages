@@ -32,21 +32,27 @@ def localeGuard(f):
             view_args = dict(**request.view_args)
             view_args.pop("locale", None)
             return redirect(
-                url_for(request.endpoint, locale=defaultLang.id, **view_args)
+                getLocalizedRequestEndpoint(defaultLang.id)
             )
 
         if isMultiLangs() and locale is None:
             userLang = request.accept_languages[0][0].split("-")[0]
             if userLang in lang_ids:
                 return redirect(
-                    url_for(request.endpoint, locale=userLang, **request.view_args)
+                    getLocalizedRequestEndpoint(userLang)
                 )
             return redirect(
-                url_for(request.endpoint, locale=defaultLang.id, **request.view_args)
+                getLocalizedRequestEndpoint(defaultLang.id)
             )
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+def getLocalizedRequestEndpoint(locale):
+    view_args = dict(**request.view_args)
+    view_args.pop("locale", None)
+    return url_for(request.endpoint, locale=locale, **view_args)
 
 
 def getLangs():

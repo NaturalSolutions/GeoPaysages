@@ -56,7 +56,7 @@
             {% if isMultiLangs %}
             {% for lang in langs %}
             <li class="nav-item {{ "mt-3" if loop.index0 == 0 else "mt-1" }} d-md-none">
-              <a href="/{{ lang.id }}" class="nav-link p-0">
+              <a href="{{ getLocalizedRequestEndpoint(lang.id) }}" class="nav-link p-0">
                 <span class="px-3">{{ lang.label }}</span>
               </a>
             </li>
@@ -68,7 +68,7 @@
         <div class="d-none d-md-block language-selector">
           <b-dropdown text="{{ locale }}" variant="secondary" right>
             {% for lang in langs %}
-            <b-dropdown-item href="/{{ lang.id }}">{{ lang.label }}</b-dropdown-item>
+            <b-dropdown-item href="{{ getLocalizedRequestEndpoint(lang.id) }}">{{ lang.label }}</b-dropdown-item>
             {% endfor %}
           </b-dropdown>
         </div>

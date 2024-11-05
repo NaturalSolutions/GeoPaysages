@@ -445,7 +445,7 @@ h6 .light {
 /* HEADER */
 
 #header {
-  z-index: 1002;
+  z-index: 1003;
   box-shadow: 0px 2px 2px #00000044;
   position: relative;
 }

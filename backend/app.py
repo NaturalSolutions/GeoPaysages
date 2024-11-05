@@ -92,6 +92,7 @@ def inject_to_tpl():
         getThumborUrl=utils.getThumborUrl,
         getCustomTpl=utils.getCustomTpl,
         getLocalizedLink=utils.getLocalizedLink,
+        getLocalizedRequestEndpoint=utils.getLocalizedRequestEndpoint,
     )
     data.update(custom)
     return data
