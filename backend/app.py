@@ -59,9 +59,11 @@ CORS(app, supports_credentials=True)
 @babel.localeselector
 def determine_locale():
     locale = utils.getLocale()
-    translation_exists = locale in [
-        str(translation) for translation in babel.list_translations()
-    ]
+    translation_ids = [str(translation) for translation in babel.list_translations()]
+    translation_exists = locale in translation_ids
+    if not translation_exists and "-" in locale:
+        locale = locale.split("-")[0]
+        translation_exists = locale in translation_ids
     if not translation_exists:
         default_lang = utils.getDefaultLang()
         locale = default_lang.id
