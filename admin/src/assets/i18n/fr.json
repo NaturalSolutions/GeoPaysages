@@ -122,7 +122,12 @@
   "ERRORS": {
     "EXPIRED_SESSION": "Votre session a expirée, veuillez vous reconnecter.",
     "SERVER_ERROR": "Erreur survenue sur le serveur, veuillez rafraîchir la page.",
-    "INVALID_GEOM": "La geometrie est invalide"
+    "INVALID_GEOM": "La geometrie est invalide",
+     "MUST_GET_ONE_DEFAULT_LANG": "Aucune autre langue par défaut existe, vous devez avoir au moins une langue par défaut",
+     "FORMS": {
+      "REQUIRED": "Ce champs est requis.",
+      "INVALID_DEFAULT": "\"{{ field_default }}\" ne peut pas être activé si \"{{ field_published }}\" est désactivé."
+    }
   },
  "INFO_MESSAGE":{
   "NO_PICTURE": "Veuillez importer une photo",

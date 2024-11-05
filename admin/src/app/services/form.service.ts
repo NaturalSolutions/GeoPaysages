@@ -17,8 +17,7 @@ export class FormService {
       id: [
         null,
         [
-          Validators.required,
-          this.MinMaxLengthValidator(2, 2) // Longueur exacte de 2 caractères
+          Validators.required
         ]
       ],
       label: [

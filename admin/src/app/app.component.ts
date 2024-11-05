@@ -12,8 +12,8 @@ export class AppComponent {
   constructor(private languageService: LanguageService) { }
   title = 'admin';
 
-  ngOnInit() {
-    this.languageService.loadLanguagesSorted()
+  async ngOnInit() {
+    await this.languageService.loadLanguagesSorted();
   }
 
 }

@@ -37,8 +37,8 @@ export class ManageSitesComponent implements OnInit, OnDestroy {
     private languageService: LanguageService
   ) {}
 
-  ngOnInit() {
-    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
+  async ngOnInit() {
+    await this.initializeLangDB();
     this.getAllSites();
   }
 
@@ -58,6 +58,7 @@ export class ManageSitesComponent implements OnInit, OnDestroy {
               'id_site',
               'marker',
               'ref_site',
+              'observatory',
             ]),
             publish_site: this.translationService.getTranslation(this.defaultLangDB.id,site, 'publish_site'),
             name_site: this.translationService.getTranslation(this.defaultLangDB.id,site, 'name_site'),
@@ -91,5 +92,11 @@ export class ManageSitesComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.changeDetector.detach();
     this.spinner.hide();
+  }
+
+  async initializeLangDB() {
+    await this.languageService.loadLanguagesSorted();
+    this.languageService.getLanguagesDB();
+    this.defaultLangDB= this.languageService.getDefaultLanguageDB();
   }
 }

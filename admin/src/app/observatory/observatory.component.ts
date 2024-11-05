@@ -59,7 +59,7 @@ export class ObservatoryComponent implements OnInit {
   currentTabLangId: string;
   errorMessage: string = 'test';
   isInvalidForm: boolean = false;
-  defaultLang:Language;
+  defaultLangDB:Language;
 
   constructor(
     private observatoryService: ObservatoriesService,
@@ -75,9 +75,8 @@ export class ObservatoryComponent implements OnInit {
     private languageService: LanguageService
   ) {}
 
-  ngOnInit() {
-    this.availableLang = this.languageService.getLanguagesDB()
-    this.defaultLang = this.languageService.getDefaultLanguageDB();
+  async ngOnInit() {
+    await this.initializeLangDB();
     this.currentTabLangId =  this.availableLang[0].id;
     this.currentUser = this.authService.currentUser;
     this.id_observatory = this.route.snapshot.params['id'];
@@ -427,6 +426,12 @@ export class ObservatoryComponent implements OnInit {
     translations: this.formService.createTranslationsObject(formValue, availableLang, FormConstants.mandatoryFieldsObservatory)
   };
   return post;
+}
+
+async initializeLangDB() {
+  await this.languageService.loadLanguagesSorted();
+  this.availableLang =this.languageService.getLanguagesDB();
+  this.defaultLangDB= this.languageService.getDefaultLanguageDB();
 }
 
 }

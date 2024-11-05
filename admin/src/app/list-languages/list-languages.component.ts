@@ -36,22 +36,19 @@ import {
       private changeDetector: ChangeDetectorRef
     ) {}
   
-    ngOnInit() {
-      this.defaultLangDB = this.languageService.getDefaultLanguageDB();
+    async ngOnInit() {
+      await this.initializeLangDB();
       this.getAll();
     }
   
     getAll() {
       this.spinner.show();
-      this.languageService.getAllLanguages().subscribe(
-        (items) => {
-            this.rows =items ;
-
-          ;
+      this.languageService.loadLanguagesSorted().then(() => {
+          this.rows = this.languageService.languagesDB;;
           this.itemsLoaded = true;
           this.spinner.hide();
-        },
-        (err) => {
+        })
+        .catch((err) => {
           this.spinner.hide();
           this.translate.get('ERRORS.SERVER_ERROR').subscribe((message: string) => {
             this.toastr.error(message, '', {
@@ -77,6 +74,12 @@ import {
     ngOnDestroy() {
       this.changeDetector.detach();
       this.spinner.hide();
+    }
+
+    async initializeLangDB() {
+      await this.languageService.loadLanguagesSorted();
+      this.languageService.getLanguagesDB();
+      this.defaultLangDB = this.languageService.getDefaultLanguageDB();
     }
   }
   

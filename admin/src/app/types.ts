@@ -51,3 +51,9 @@ export type LanguagePatchType = {
   is_default: boolean;
   is_published: boolean;
 }
+
+export type LibLocales = {
+  id: string;
+  language: string;
+  displayLabel: string;
+}

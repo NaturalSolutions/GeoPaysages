@@ -27,9 +27,18 @@
           <div class="row mb-3">
             <div class="col-6">
               <label class="label" for="language-id">{{'LANG_MNGMT.ID' | translate }}</label>
-              <input InputFeedBack type="text" formControlName="id" id="language-id" class="form-control"
-                placeholder="{{'LANG_MNGMT.ID' | translate }}" />
-              <app-form-error controlName="ref" errorKey="required"></app-form-error>
+              <ng-select
+                [items]="libLocales"
+                bindLabel="displayLabel"  
+                bindValue="id"       
+                formControlName="id"
+                [placeholder]="'LANG_MNGMT.ID' | translate"
+                [searchable]="true"  
+                [clearable]="true"
+                [disabled]="isIdDisabled"
+            >
+            </ng-select>
+              <app-form-error controlName="id" errorKey="required"></app-form-error>
             </div>
             <div class="col-6">
               <div class="inner-checkbox form-group">

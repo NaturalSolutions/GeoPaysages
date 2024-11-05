@@ -8,11 +8,10 @@ import * as _ from 'lodash';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../services/auth.service';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { Language, LanguagePatchType} from '../types';
+import { Language, LanguagePatchType, LibLocales} from '../types';
 import * as io from 'jsts/org/locationtech/jts/io';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest, Observable } from 'rxjs';
-import { TranslationService } from '../services/translation.service';
 import { LanguageService } from '../services/language.service';
 
 @Component({
@@ -58,6 +57,7 @@ export class FormLanguagesComponent implements OnInit {
   errorMessage: string = 'test';
   isInvalidForm: boolean = false;
   defaultLang:Language;
+  libLocales:LibLocales[];
 
   constructor(
     public formService: FormService,
@@ -71,12 +71,16 @@ export class FormLanguagesComponent implements OnInit {
     private languageService: LanguageService
   ) {}
 
-  ngOnInit() {
-    // this.availableLang = this.languageService.getLanguagesDB()
-    // this.defaultLang = this.languageService.getDefaultLanguageDB();
-    // this.currentTabLangId =  this.availableLang[0].id;
+  async ngOnInit() {
+    await this.initializeLangDB();
     this.currentUser = this.authService.currentUser;
     this.id_language = this.route.snapshot.params['id'];
+    this.languageService.loadLibLocales().subscribe((res) => {
+      this.libLocales = res.map((locale: any) => ({
+        ...locale,
+        displayLabel: `${locale.id} - ${locale.language}`
+      }));
+    })
     this.languageForm = this.formService.initFormlanguage();
     if (this.id_language) {
       this.getlanguage(this.id_language);
@@ -90,46 +94,31 @@ export class FormLanguagesComponent implements OnInit {
   async submitlanguage(languageForm) {
 
     languageForm.updateValueAndValidity();
-    console.log('SUBMIT languageForm', languageForm);
     this.alert = null;
-    console.log("languageForm.valid", languageForm.valid);
-    console.log("this.languageForm.valid", this.languageForm.valid);
     const isValidForm = this.formService.checkAllControlStatuses(languageForm);
-    if (!isValidForm) {
+    const isValidPushlishedDefault = this.isDefaultWhenPublishedValidator(languageForm);
+    if (!isValidForm || !isValidPushlishedDefault) {
       this.isInvalidForm = true;
-      this.errorMessage =this.generateErrorMessage();
-      console.log("this.errorMessage", this.errorMessage);
+      this.errorMessage = await this.validateLanguageForm(languageForm);
       return;
     }
     this.isEditing = false;
     this.spinner.show();
     try {
+      let res;
       if (!this.id_language) {
-        const res = await this.postlanguage();
-        console.log('res', res);
+        res = await this.postlanguage();
         this.router.navigate(['languages', 'details', res.id]);
-        return;
       } else {
-        this.patchlanguage();
+        res = await this.patchlanguage();
       }
     } catch (err) {
-      if (err.status === 403) {
-        this.translate.get('ERRORS.SESSION_EXPIRED').subscribe((message: string) => {
-          this.router.navigate(['']);
-          this.toastr.error(message, '', {
-            positionClass: 'toast-bottom-right',
-          });
-        });
-      } else {
-        this.translate.get('ERRORS.SERVER_ERROR').subscribe((message: string) => {
-          this.toastr.error(message, '', {
-            positionClass: 'toast-bottom-right',
-          });
-        });
-      }
+      this.handleError(err);
+    } finally {
+      this.isInvalidForm = false;
+      this.edit_btn_text = 'BUTTONS.EDIT';
+      this.spinner.hide();
     }
-    this.edit_btn_text = 'BUTTONS.EDIT';
-    this.spinner.hide();
   }
 
   setAlert(message: string) {
@@ -146,7 +135,6 @@ export class FormLanguagesComponent implements OnInit {
         this.language = language;
       },
       (err) => {
-        console.log('err', err);
         this.translate.get('ERRORS.SERVER_ERROR').subscribe((message: string) => {
           this.toastr.error(message, '', {
             positionClass: 'toast-bottom-right',
@@ -161,47 +149,48 @@ export class FormLanguagesComponent implements OnInit {
     );
   }
 
-  postlanguage(): Promise<Language> {
-    return new Promise((resolve, reject) => {
+  async postlanguage(): Promise<Language> {
+    try {
       const formValue = this.languageForm.value;
       const post: Language = this.createPostObject(formValue);
-    
-      this.languageService.post(post).subscribe(
-        (res) => {
-          this.translate.get("INFO_MESSAGE.SUCCESS_ADDED_LANG").subscribe((message: string) => {
-            this.toastr.success(message, '', {
-              positionClass: 'toast-bottom-right',
-            })
-          resolve(res);
-          });
-        },
-        (err) => {
-          reject(err);
-        }
-      );
-    });
+      const res = await this.languageService.post(post).toPromise();
+  
+      // Affichage du message de succès
+      await this.showSuccessMessage("INFO_MESSAGE.SUCCESS_ADDED_LANG");
+      return res;
+    } catch (err) {
+      this.handleError(err);  // Gestion des erreurs centralisée
+      throw err;  // Relancer l'erreur pour que l'appelant puisse la traiter
+    }
   }
 
-  patchlanguage(): Promise<void> {
-    return new Promise((resolve, reject) => {
-    const { id, ...patch } = this.languageForm.value;
-    const typedPatch: LanguagePatchType = patch;
-      console.log("typedPatch", typedPatch)
-      this.languageService.patch(id, typedPatch).subscribe(
-        (res) => {
-          this.translate.get("INFO_MESSAGE.SUCCESS_UPDATED_LANG").subscribe((message: string) => {
-            this.toastr.success(message, '', {
-              positionClass: 'toast-bottom-right',
-            })
-          });
-          resolve();
-        },
-        (err) => {
-          reject(err);
-        }
-      );
-    });
+  async patchlanguage(): Promise<void> {
+    try {
+      const { id, ...patch } = this.languageForm.value;
+      const idLanguage =  id ? id : this.languageForm.controls.id.value; 
+      const typedPatch: LanguagePatchType = patch;
+      // Utilisation de toPromise() pour convertir l'observable en promesse
+      await this.languageService.patch(idLanguage, typedPatch).toPromise();
+  
+      // Affichage du message de succès
+      await this.showSuccessMessage("INFO_MESSAGE.SUCCESS_UPDATED_LANG");
+    } catch (err) {
+      // Gestion de l'erreur avec un message utilisateur et console log
+      let message = 'ERRORS.SERVER_ERROR';
+      if (err.hasOwnProperty('error') && err.error.hasOwnProperty('error_message')) {
+        message = err.error.error_message
+      }
+      // this.toastr.error(message, '', { positionClass: 'toast-bottom-right' });
+      this.translate.get('ERRORS.MUST_GET_ONE_DEFAULT_LANG').subscribe((message: string) => {
+        this.toastr.error(message, '', {
+          positionClass: 'toast-bottom-right',
+        });
+      })
+      throw err; // Propagation de l'erreur pour que l'appelant puisse la gérer
+    }
   }
+  
+  
 
 
   editForm() {
@@ -215,6 +204,7 @@ export class FormLanguagesComponent implements OnInit {
     } else {
       this.edit_btn_text = 'BUTTONS.CANCEL';
       this.languageForm.enable();
+      this.languageForm.get('id').disable();
     }
   }
 
@@ -246,7 +236,6 @@ export class FormLanguagesComponent implements OnInit {
 
 
   ngOnDestroy() {
-    this.languageService.loadLanguagesSorted()
     this.spinner.hide();
     if (this.mySubscription) {
       this.mySubscription.unsubscribe();
@@ -261,10 +250,6 @@ export class FormLanguagesComponent implements OnInit {
   getTranslatedMessages(keys: string[]): Observable<string[]> {
     return combineLatest(keys.map(key => this.translate.get(key)));
   }
-  private generateErrorMessage(): string {
-    return "Veuillez vérifier tous les champs obligatoires dans chaque onglet"
-    // return this.formService.generateErrorMessage(this.languageForm,[], formLabels.language);
- }
 
  createPostObject(formValue): Language {
   // Récupérez les propriétés de base
@@ -276,5 +261,95 @@ export class FormLanguagesComponent implements OnInit {
   };
   return post;
 }
+
+private handleError(err: any) {
+  let messageKey = 'ERRORS.SERVER_ERROR'; // Valeur par défaut
+  if (err.status === 403) {
+    messageKey = 'ERRORS.SESSION_EXPIRED';
+    this.router.navigate(['']);
+  }
+  
+  this.translate.get(messageKey).subscribe((message: string) => {
+    this.toastr.error(message, '', {
+      positionClass: 'toast-bottom-right',
+    });
+  });
+}
+
+private async showSuccessMessage(messageKey: string) {
+  const message = await this.translate.get(messageKey).toPromise();
+  this.toastr.success(message, '', {
+    positionClass: 'toast-bottom-right',
+  });
+}
+
+async initializeLangDB() {
+  await this.languageService.loadLanguagesSorted();
+  this.availableLang = this.languageService.getLanguagesDB();
+  this.defaultLang = this.languageService.getDefaultLanguageDB();
+}
+
+isDefaultWhenPublishedValidator(group: FormGroup) {
+    const isDefault = group.get('is_default') ? group.get('is_default').value : null;
+    const isPublished = group.get('is_published') ? group.get('is_published').value : null;
+
+    if (isDefault && !isPublished) {
+      return false
+    }
+    return true
+};
+
+async validateLanguageForm(languageForm: FormGroup): Promise<string | null> {
+  const errorMessages: string[] = [];
+  let errorMessageString : string = ""
+  // Vérifier toutes les erreurs de champ
+  const isValidForm = this.formService.checkAllControlStatuses(languageForm);
+  const isValideDefaultPublished = this.isDefaultWhenPublishedValidator(languageForm);
+
+  if (!isValidForm) {
+    Object.keys(languageForm.controls).forEach((field) => {
+      const control = languageForm.get(field);
+      if (control && control.errors) {
+        if (control.errors['required']) {
+          errorMessages.push(`${field} est requis.`);
+        }
+        // Ajoutez d'autres cas d'erreurs de champ ici
+      }
+    });
+  }
+
+  // Vérifier l'erreur de la relation is_default et is_published
+  if (!isValideDefaultPublished) {
+   await this.translateItems('ERRORS.FORMS.INVALID_DEFAULT','LANG_MNGMT.DEFAULT_LANGUAGE', 'ACTIONS.PUBLISH_DEFAULT').then((message: string) => {
+      errorMessages.push(message);
+    })
+  }
+
+  if (errorMessages.length > 0) {
+    // Concaténer tous les messages avec un saut de ligne
+    errorMessageString = errorMessages.join('\n');
+    return errorMessageString
+  } else {
+    return null
+  }
+}
+
+async translateItems (mainMessage: string, firstVar:string, secondVar:string) {
+
+  const currentLang = this.translate.currentLang;
+  console.log("Langue actuelle :", currentLang);
+  const [field_default, field_published] = await Promise.all([
+    this.translate.get(firstVar).toPromise(),
+    this.translate.get(secondVar).toPromise()
+  ]);
+
+  const errorMessage = this.translate.instant(mainMessage, {
+    field_default,
+    field_published
+  });
+
+  return errorMessage
+}
+
 
 }

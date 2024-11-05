@@ -33,8 +33,8 @@ export class GalleryComponent implements OnInit {
 
   ) {}
 
-  ngOnInit() {
-    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
+  async ngOnInit() {
+    await this.initializeLangDB();
     this.spinner.show();
     this.sitesService.getAllSites().subscribe(
       (sites) => {
@@ -126,5 +126,10 @@ export class GalleryComponent implements OnInit {
 
   isActive(site) {
     return this.selected_site === site.id_site;
+  }
+  async initializeLangDB() {
+    await this.languageService.loadLanguagesSorted();
+    this.languageService.getLanguagesDB();
+    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
   }
 }

@@ -134,3 +134,9 @@
 .alert {
     margin-top: 8px
 }
+
+.ng-select.ng-select-disabled {
+    background-color: #f5f5f5; /* Couleur de fond grisée */
+    pointer-events: none; /* Désactiver les événements */
+    opacity: 0.6; /* Rendre le champ moins visible */
+}

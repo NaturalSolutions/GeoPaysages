@@ -40,8 +40,8 @@ export class ObservatoriesComponent implements OnInit, OnDestroy {
     private languageService: LanguageService
   ) {}
 
-  ngOnInit() {
-    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
+  async ngOnInit() {
+    await this.initializeLangDB();
     this.getAll();
   }
 
@@ -83,5 +83,11 @@ export class ObservatoriesComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.changeDetector.detach();
     this.spinner.hide();
+  }
+
+  async initializeLangDB() {
+    await this.languageService.loadLanguagesSorted();
+    this.languageService.getLanguagesDB();
+    this.defaultLangDB = this.languageService.getDefaultLanguageDB();
   }
 }
