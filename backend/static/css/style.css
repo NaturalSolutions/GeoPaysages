@@ -486,9 +486,6 @@ h6 .light {
     border: none !important;
     min-width: auto;
   }
-  body.is-multi-langs .navbar-collapse {
-    right: 50px;
-  }
   .navbar-collapse,
   .navbar-collapse ul,
   .navbar-collapse li,
