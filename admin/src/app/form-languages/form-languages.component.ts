@@ -112,7 +112,7 @@ export class FormLanguagesComponent implements OnInit {
       let res;
       if (!this.id_language) {
         res = await this.postlanguage();
-        this.router.navigate(['languages', 'details', res.id]);
+        this.router.navigate(['languages']);
       } else {
         res = await this.patchlanguage();
       }
