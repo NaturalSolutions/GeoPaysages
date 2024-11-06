@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-10-28 17:23+0000\n"
+"POT-Creation-Date: 2024-11-06 08:10+0000\n"
 "PO-Revision-Date: 2018-12-21 11:34+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: fr\n"
+"Language: en\n"
 "Language-Team: fr <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "MIME-Version: 1.0\n"
@@ -18,23 +18,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: utils.py:176
+#: utils.py:229
 msgid "sites.filter.themes"
 msgstr "Topic"
 
-#: utils.py:179
+#: utils.py:232
 msgid "sites.filter.subthemes"
 msgstr "Sub-topic"
 
-#: utils.py:185
+#: utils.py:238
 msgid "sites.filter.township"
 msgstr "City"
 
-#: utils.py:191
+#: utils.py:244
 msgid "sites.filter.years"
 msgstr "Year"
 
-#: utils.py:336
+#: utils.py:391
 msgid "sites.filter.obervatories"
 msgstr "City"
 
@@ -80,27 +80,27 @@ msgstr "Photography"
 msgid "home.block.discover_observatories"
 msgstr "Discover this Observation Site"
 
-#: tpl/layout.jinja:72
+#: tpl/layout.jinja:90
 msgid "footer.internal_title"
 msgstr "The Site"
 
-#: tpl/layout.jinja:76
+#: tpl/layout.jinja:94
 msgid "footer.internal_links.home"
 msgstr "Home"
 
-#: tpl/layout.jinja:81
+#: tpl/layout.jinja:99
 msgid "footer.internal_links.sites"
 msgstr "Observation Sites"
 
-#: tpl/layout.jinja:86
+#: tpl/layout.jinja:104
 msgid "footer.internal_links.gallery"
 msgstr "Photo Gallery"
 
-#: tpl/layout.jinja:92
+#: tpl/layout.jinja:110
 msgid "footer.internal_links.contact"
 msgstr "Contact Us"
 
-#: tpl/layout.jinja:101
+#: tpl/layout.jinja:119
 msgid "footer.external_title"
 msgstr "Our Territory"
 
@@ -148,39 +148,39 @@ msgstr "Observation Sites"
 msgid "sites.observation_points.title"
 msgstr "Observation Sites"
 
-#: tpl/sites.jinja:78
+#: tpl/sites.jinja:80
 msgid "sites.observation_points.item"
 msgstr "observation site(s)"
 
-#: tpl/sites.jinja:112 tpl/sites.jinja:115
+#: tpl/sites.jinja:118 tpl/sites.jinja:121
 msgid "map.share.button"
 msgstr "Share"
 
-#: tpl/sites.jinja:121
+#: tpl/sites.jinja:127
 msgid "map.legend.obervatories"
 msgstr "city(ies)"
 
-#: tpl/sites.jinja:127
+#: tpl/sites.jinja:133
 msgid "map.legend.themes"
 msgstr "Theme(s)"
 
-#: tpl/sites.jinja:139
+#: tpl/sites.jinja:145
 msgid "map.legend.title"
 msgstr "Legend"
 
-#: tpl/sites.jinja:149
+#: tpl/sites.jinja:155
 msgid "map.share.dialog.title"
 msgstr "Share"
 
-#: tpl/sites.jinja:150
+#: tpl/sites.jinja:156
 msgid "map.share.dialog.message"
 msgstr "Copy and share the link above"
 
-#: tpl/sites.jinja:167
+#: tpl/sites.jinja:173
 msgid "map.share.copy_success.title"
 msgstr "Copied!"
 
-#: tpl/sites.jinja:168
+#: tpl/sites.jinja:174
 msgid "map.share.copy.copy_success.message"
 msgstr "The link is ready to paste."
 
@@ -239,6 +239,10 @@ msgstr "1 year"
 #: tpl/components/legal-footer.jinja:1
 msgid "footer.copyright"
 msgstr "© 2023 - GeoLandscapes, free and open-source software"
+
+#: tpl/components/legal-footer.jinja:5
+msgid "footer.legal_notices"
+msgstr "Legal notices"
 
 #: tpl/components/sites-filter.jinja:22
 msgid "map.filters.title"
