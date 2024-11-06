@@ -51,7 +51,7 @@
         </b-navbar-brand>
 
         <b-collapse id="nav-collapse" is-nav class="p-3 py-md-0 pl-md-0 border">
-          <b-navbar-nav>
+          <b-navbar-nav  class="align-items-baseline">
             {% include getCustomTpl('main_menu') %}
             {% if isMultiLangs %}
             {% for lang in langs %}
@@ -61,18 +61,16 @@
               </a>
             </li>
             {% endfor %}
+            <div class="d-none d-md-block language-selector">
+              <b-dropdown text="{{ locale }}" variant="secondary" right>
+                {% for lang in langs %}
+                <b-dropdown-item href="{{ getLocalizedRequestEndpoint(lang.id) }}">{{ lang.label }}</b-dropdown-item>
+                {% endfor %}
+              </b-dropdown>
+            </div>
             {% endif %}
           </b-navbar-nav>
         </b-collapse>
-        {% if isMultiLangs %}
-        <div class="d-none d-md-block language-selector">
-          <b-dropdown text="{{ locale }}" variant="secondary" right>
-            {% for lang in langs %}
-            <b-dropdown-item href="{{ getLocalizedRequestEndpoint(lang.id) }}">{{ lang.label }}</b-dropdown-item>
-            {% endfor %}
-          </b-dropdown>
-        </div>
-        {% endif %}
       </b-navbar>
     </header>
     

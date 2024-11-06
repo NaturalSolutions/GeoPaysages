@@ -463,11 +463,8 @@ h6 .light {
   color: var(--color-primary) !important;
 }
 
-#header .language-selector {
-  position: absolute;
-  right: 5px;
-  top: 20px;
-  z-index: 10000;
+#header .language-selector .dropdown-menu {
+  height: auto !important;
 }
 
 .navbar-collapse {
