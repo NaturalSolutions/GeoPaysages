@@ -658,6 +658,38 @@ def add_langs():
         )
         db.session.add(lang_obj)
 
+        default_lang = models.Lang.query.filter_by(is_default=True).first()
+
+        db.session.execute(
+            f"""INSERT INTO communes_translation (lang_id, nom_commune, row_id) 
+            SELECT '{lang['id']}', ct.nom_commune, ct.row_id FROM communes_translation ct 
+            WHERE ct.lang_id = '{default_lang.id}';"""
+        )
+
+        db.session.execute(
+            f"""INSERT INTO dico_theme_translation (lang_id, name_theme, row_id) 
+            SELECT '{lang['id']}', dtt.name_theme, dtt.row_id FROM dico_theme_translation dtt 
+            WHERE dtt.lang_id = '{default_lang.id}';"""
+        )
+
+        db.session.execute(
+            f"""INSERT INTO dico_stheme_translation (lang_id, name_stheme, row_id) 
+            SELECT '{lang['id']}', dtt.name_stheme, dtt.row_id FROM dico_stheme_translation dtt 
+            WHERE dtt.lang_id = '{default_lang.id}';"""
+        )
+
+        db.session.execute(
+            f"""INSERT INTO t_site_translation (lang_id, row_id, name_site) 
+            SELECT '{lang['id']}', st.row_id, st.name_site FROM t_site_translation st 
+            WHERE st.lang_id = '{default_lang.id}';"""
+        )
+
+        db.session.execute(
+            f"""INSERT INTO t_observatory_translation (lang_id, row_id, title) 
+            SELECT '{lang['id']}', ot.row_id, ot.title FROM t_observatory_translation ot 
+            WHERE ot.lang_id = '{default_lang.id}';"""
+        )
+
         db.session.commit()
         return jsonify({"id": lang_obj.id}), 201
 
