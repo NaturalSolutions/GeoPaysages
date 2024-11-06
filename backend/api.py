@@ -707,20 +707,59 @@ def update_lang(lang_id):
         if "is_default" in data and data["is_default"] is True:
             # Vérifiez s'il y a d'autres langues qui sont déjà marquées comme is_default
             existing_default = models.Lang.query.filter(
-                    models.Lang.is_default.is_(True)
-                ).all()
+                models.Lang.is_default.is_(True)
+            ).all()
             # Si aucune langue n'est par défaut, cela signifie que c'est la première langue par défaut
             if existing_default:
                 # Si c'est une mise à jour d'une langue différente, réinitialisez is_default pour les autres
-                if all(lang.id != lang_id for lang in existing_default) and models.Lang.query.count() > 1:
+                if (
+                    all(lang.id != lang_id for lang in existing_default)
+                    and models.Lang.query.count() > 1
+                ):
                     # Mettez is_default à False pour toutes les autres langues
                     models.Lang.query.filter(models.Lang.id != lang_id).update(
                         {"is_default": False}
                     )
         else:
-            no_default_exists = models.Lang.query.filter(and_(models.Lang.is_default.is_(True), models.Lang.id != lang_id)).count() == 0
+            no_default_exists = (
+                models.Lang.query.filter(
+                    and_(models.Lang.is_default.is_(True), models.Lang.id != lang_id)
+                ).count()
+                == 0
+            )
             if no_default_exists:
-                return jsonify({"error_message": "No other default language exists, you must have at least one default language" }), 405
+                return (
+                    jsonify({"error_message": "ERRORS.MUST_GET_ONE_DEFAULT_LANG"}),
+                    405,
+                )
+
+        if "is_published" in data and data["is_published"] is True:
+            has_one_site = (
+                models.TSiteTranslation.query.filter_by(
+                    lang_id=lang_id, publish_site=True
+                ).count()
+                > 0
+            )
+            if not has_one_site:
+                return (
+                    jsonify({"error_message": "ERRORS.MUST_HAVE_ONE_SITE_IN_LANG"}),
+                    400,
+                )
+
+            has_one_observatory = (
+                models.ObservatoryTranslation.query.filter_by(
+                    lang_id=lang_id, is_published=True
+                ).count()
+                > 0
+            )
+            if not has_one_observatory:
+                return (
+                    jsonify(
+                        {"error_message": "ERRORS.MUST_HAVE_ONE_OBSERVATORY_IN_LANG"}
+                    ),
+                    400,
+                )
+
         models.Lang.query.filter_by(id=lang_id).update(data)
         # Vérifiez la mise à jour de la langue actuelle
         db.session.commit()
@@ -743,6 +782,7 @@ def delete_lang(id):
 
     return jsonify("lang deleted"), 200
 
+
 @api.route("/api/lib-locales", methods=["GET"])
 def get_all_lib_locales():
     get_all_lib_locales = models.LibLocales.query.all()
@@ -750,11 +790,8 @@ def get_all_lib_locales():
     return jsonify(lib_locales), 200
 
 
-
 @api.route("/api/logout", methods=["GET"])
 def logout():
     resp = Response("", 200)
     resp.delete_cookie("token")
     return resp
-
-

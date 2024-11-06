@@ -123,7 +123,9 @@
     "EXPIRED_SESSION": "Votre session a expirée, veuillez vous reconnecter.",
     "SERVER_ERROR": "Erreur survenue sur le serveur, veuillez rafraîchir la page.",
     "INVALID_GEOM": "La geometrie est invalide",
-     "MUST_GET_ONE_DEFAULT_LANG": "Aucune autre langue par défaut existe, vous devez avoir au moins une langue par défaut",
+     "MUST_GET_ONE_DEFAULT_LANG": "Aucune autre langue par défaut existe, vous devez avoir au moins une langue par défaut.",
+     "MUST_HAVE_ONE_SITE_IN_LANG": "Vous devez avoir au moins un site publié dans cette langue.",
+     "MUST_HAVE_ONE_OBSERVATORY_IN_LANG": "Vous devez avoir au moins un observatoire publié dans cette langue.",
      "FORMS": {
       "REQUIRED": "Ce champs est requis.",
       "INVALID_DEFAULT": "\"{{ field_default }}\" ne peut pas être activé si \"{{ field_published }}\" est désactivé."

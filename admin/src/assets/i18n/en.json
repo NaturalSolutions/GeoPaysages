@@ -124,7 +124,9 @@
       "EXPIRED_SESSION": "Your session has expired, please log in again.",
       "SERVER_ERROR": "An error occurred on the server, please refresh the page.",
       "INVALID_GEOM": "The geometry is invalid.",
-      "MUST_GET_ONE_DEFAULT_LANG": "No other default language exists, you must have at least one default language",
+      "MUST_GET_ONE_DEFAULT_LANG": "No other default language exists, you must have at least one default language.",
+      "MUST_HAVE_ONE_SITE_IN_LANG": "You must have at least one published site in this language.",
+      "MUST_HAVE_ONE_OBSERVATORY_IN_LANG": "You must have at least one published observatory in this language.",
       "FORMS": {
         "REQUIRED": "This field is required.",
         "INVALID_DEFAULT": "\"{{ field_default }}\" cannot be set to true if  \" {{ field_published }}\" is set to false."

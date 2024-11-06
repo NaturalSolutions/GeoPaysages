@@ -192,13 +192,12 @@ export class FormLanguagesComponent implements OnInit {
         message = err.error.error_message;
       }
       // this.toastr.error(message, '', { positionClass: 'toast-bottom-right' });
-      this.translate
-        .get('ERRORS.MUST_GET_ONE_DEFAULT_LANG')
-        .subscribe((message: string) => {
-          this.toastr.error(message, '', {
-            positionClass: 'toast-bottom-right',
-          });
+
+      this.translate.get(message).subscribe((message: string) => {
+        this.toastr.error(message, '', {
+          positionClass: 'toast-bottom-right',
         });
+      });
       throw err; // Propagation de l'erreur pour que l'appelant puisse la gérer
     }
   }
