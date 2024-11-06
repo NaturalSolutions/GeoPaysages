@@ -8,7 +8,7 @@ from flask import (
     current_app,
 )
 from flask_login import login_required, current_user
-from sqlalchemy import text
+from sqlalchemy import text, and_
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import FileWrapper
 
@@ -634,7 +634,7 @@ def returnAllLangs():
 def get_one_lang(id):
     lang_query = models.Lang.query.filter_by(id=id).first()
     if lang_query is None:
-        return jsonify({"error": "Lang not found"}), 404
+        return jsonify({"error_message": "Lang not found"}), 404
 
     lang = models.LangSchema().dump(lang_query)
     return jsonify(lang), 200
@@ -648,7 +648,7 @@ def add_langs():
         get_all_existing_langs = models.Lang.query.all()
         langs = {t.id: t for t in get_all_existing_langs}
         if lang["id"] in langs:
-            return jsonify({"error": "lang already exists"}), 409
+            return jsonify({"error_message": "lang already exists"}), 409
 
         lang_obj = models.Lang(
             id=lang["id"],
@@ -666,31 +666,31 @@ def add_langs():
         return jsonify({"error": str(exception)}), 400
 
 
-@api.route("/api/langs/<string:id>", methods=["PATCH"])
+@api.route("/api/langs/<string:lang_id>", methods=["PATCH"])
 @fnauth.check_auth(2)
-def update_lang(id):
+def update_lang(lang_id):
     data = request.get_json()
     try:
         # Vérifiez si la langue mise à jour a is_default à True
         if "is_default" in data and data["is_default"] is True:
             # Vérifiez s'il y a d'autres langues qui sont déjà marquées comme is_default
             existing_default = models.Lang.query.filter(
-                models.Lang.is_default.is_(True)
-            ).all()
-
+                    models.Lang.is_default.is_(True)
+                ).all()
             # Si aucune langue n'est par défaut, cela signifie que c'est la première langue par défaut
-            if not existing_default:
-                # Permettre la mise à jour car c'est la première langue par défaut
-                pass
-            else:
+            if existing_default:
                 # Si c'est une mise à jour d'une langue différente, réinitialisez is_default pour les autres
-                if all(lang.id != id for lang in existing_default):
+                if all(lang.id != lang_id for lang in existing_default) and models.Lang.query.count() > 1:
                     # Mettez is_default à False pour toutes les autres langues
-                    models.Lang.query.filter(models.Lang.id != id).update(
+                    models.Lang.query.filter(models.Lang.id != lang_id).update(
                         {"is_default": False}
                     )
-
-        models.Lang.query.filter_by(id=id).update(data)
+        else:
+            no_default_exists = models.Lang.query.filter(and_(models.Lang.is_default.is_(True), models.Lang.id != lang_id)).count() == 0
+            if no_default_exists:
+                return jsonify({"error_message": "No other default language exists, you must have at least one default language" }), 405
+        models.Lang.query.filter_by(id=lang_id).update(data)
+        # Vérifiez la mise à jour de la langue actuelle
         db.session.commit()
     except Exception as exception:
         db.session.rollback()
@@ -711,9 +711,18 @@ def delete_lang(id):
 
     return jsonify("lang deleted"), 200
 
+@api.route("/api/lib-locales", methods=["GET"])
+def get_all_lib_locales():
+    get_all_lib_locales = models.LibLocales.query.all()
+    lib_locales = models.LibLocalesSchema(many=True).dump(get_all_lib_locales)
+    return jsonify(lib_locales), 200
+
+
 
 @api.route("/api/logout", methods=["GET"])
 def logout():
     resp = Response("", 200)
     resp.delete_cookie("token")
     return resp
+
+
