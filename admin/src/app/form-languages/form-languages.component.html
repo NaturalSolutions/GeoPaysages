@@ -71,9 +71,10 @@
             <div class="col-6">
               <div class="inner-checkbox form-group" *ngIf="this.id_language">
                 <div class="label">
-                  {{ 'LANG_MNGMT.DEFAULT_LANGUAGE' | translate }} ?:
+                  {{ 'LANG_MNGMT.DEFAULT_LANGUAGE' | translate }} 
+                  <span *ngIf="!this.language.is_default">?:</span>
                 </div>
-                <label class="switch">
+                <label *ngIf="!this.language.is_default" class="switch">
                   <input
                     formControlName="is_default"
                     type="checkbox"
