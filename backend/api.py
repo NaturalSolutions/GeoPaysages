@@ -703,35 +703,28 @@ def add_langs():
 def update_lang(lang_id):
     data = request.get_json()
     try:
-        # Vérifiez si la langue mise à jour a is_default à True
+        lang_to_update = models.Lang.query.get(lang_id)
+        if not lang_to_update:
+            return jsonify({"error_message": "ERRORS.LANG_NOT_FOUND"}), 404
+
+        # Si is_default est envoyé avec la valeur True
         if "is_default" in data and data["is_default"] is True:
-            # Vérifiez s'il y a d'autres langues qui sont déjà marquées comme is_default
-            existing_default = models.Lang.query.filter(
-                models.Lang.is_default.is_(True)
-            ).all()
-            # Si aucune langue n'est par défaut, cela signifie que c'est la première langue par défaut
-            if existing_default:
-                # Si c'est une mise à jour d'une langue différente, réinitialisez is_default pour les autres
-                if (
-                    all(lang.id != lang_id for lang in existing_default)
-                    and models.Lang.query.count() > 1
-                ):
-                    # Mettez is_default à False pour toutes les autres langues
-                    models.Lang.query.filter(models.Lang.id != lang_id).update(
-                        {"is_default": False}
-                    )
-        else:
-            no_default_exists = (
-                models.Lang.query.filter(
+            # Vérifiez que la langue est déjà publiée
+            if not lang_to_update.is_published:
+                return jsonify({"error_message": "ERRORS.LANG_MUST_BE_PUBLISHED"}), 400
+
+            # Mettez is_default à False pour toutes les autres langues
+            models.Lang.query.filter(models.Lang.id != lang_id).update({"is_default": False})
+
+        # Si is_default est envoyé avec la valeur False
+        elif "is_default" in data and data["is_default"] is False:
+            # Vérifiez qu'il existe au moins une autre langue avec is_default à True
+            if lang_to_update.is_default:
+                other_default_exists = models.Lang.query.filter(
                     and_(models.Lang.is_default.is_(True), models.Lang.id != lang_id)
-                ).count()
-                == 0
-            )
-            if no_default_exists:
-                return (
-                    jsonify({"error_message": "ERRORS.MUST_GET_ONE_DEFAULT_LANG"}),
-                    405,
-                )
+                ).count() > 0
+                if not other_default_exists:
+                    return jsonify({"error_message": "ERRORS.MUST_GET_ONE_DEFAULT_LANG"}), 405
 
         if "is_published" in data and data["is_published"] is True:
             has_one_site = (
