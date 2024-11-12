@@ -733,7 +733,6 @@ def update_lang(lang_id):
                 ).count()
                 > 0
             )
-            print(has_one_site)
             if not has_one_site:
                 return (
                     jsonify({"error_message": "ERRORS.MUST_HAVE_ONE_SITE_IN_LANG"}),
@@ -746,7 +745,6 @@ def update_lang(lang_id):
                 ).count()
                 > 0
             )
-            print(has_one_observatory)
             if not has_one_observatory:
                 return (
                     jsonify(
