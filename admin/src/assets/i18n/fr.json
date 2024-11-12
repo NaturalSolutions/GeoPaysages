@@ -126,6 +126,7 @@
      "MUST_GET_ONE_DEFAULT_LANG": "Aucune autre langue par défaut existe, vous devez avoir au moins une langue par défaut.",
      "MUST_HAVE_ONE_SITE_IN_LANG": "Vous devez avoir au moins un site publié dans cette langue.",
      "MUST_HAVE_ONE_OBSERVATORY_IN_LANG": "Vous devez avoir au moins un observatoire publié dans cette langue.",
+     "LANG_MUST_BE_PUBLISHED": "La langue doit être publiée pour être définie comme langue par défaut.",
      "FORMS": {
       "REQUIRED": "Ce champs est requis.",
       "INVALID_DEFAULT": "\"{{ field_default }}\" ne peut pas être activé si \"{{ field_published }}\" est désactivé."

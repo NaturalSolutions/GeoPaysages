@@ -13,7 +13,6 @@ import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../services/auth.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { Language, LanguagePatchType, LibLocales } from '../types';
-import * as io from 'jsts/org/locationtech/jts/io';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest, Observable } from 'rxjs';
 import { LanguageService } from '../services/language.service';

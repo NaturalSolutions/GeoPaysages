@@ -705,7 +705,7 @@ def update_lang(lang_id):
     try:
         lang_to_update = models.Lang.query.get(lang_id)
         if not lang_to_update:
-            return jsonify({"error_message": "Lang not found"}), 404
+            return jsonify({"error_message": "ERRORS.LANG_NOT_FOUND"}), 404
 
         # Si is_default est envoyé avec la valeur True
         if "is_default" in data and data["is_default"] is True:
